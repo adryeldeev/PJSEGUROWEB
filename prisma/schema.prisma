@@ -1,0 +1,158 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider    = "prisma-client-js"
+  engineType  = "binary"
+}
+
+model User {
+  id           String      @id @default(uuid())
+  username     String
+  email        String
+  password     String
+  vitimas      Vitima[]    // Relacionamento com vítimas
+  processos    Processo[]  // Relacionamento indireto via processos
+  fasesProcesso FaseProcesso[] 
+  tiposDeProcesso TiposDeProcesso[]
+  prioridades  Prioridades[]
+  parceiro     Parceiro[]
+  cliente      Cliente[]
+  banco        Banco[]
+  prioridade   Prioridade[]
+  seguradora   Seguradora[]
+  tipoDeVeiculo TipoDeVeiculo[]
+}
+
+model Vitima {
+  id              Int         @id @default(autoincrement())
+  nome            String
+  cpf             Int
+  rg              Int
+  data_nascimento DateTime
+  data_emissao    DateTime
+  orgao_expedidor String
+  profissao       String
+  renda_mensal    Int
+  cep             Int
+  uf              String
+  endereco        String
+  numero          Int
+  sexo            String
+  complemento     String
+  bairro          String
+  cidade          String
+  email           String
+  telefone01      Int
+  telefone02      Int
+  userId          String
+  user            User         @relation(fields: [userId], references: [id])
+  processos       Processo[]   // Relacionamento com processos
+}
+
+model Processo {
+  id             Int            @id @default(autoincrement())
+  numero         String         @unique
+  tipoProcessoId Int
+  tipoProcesso   TiposDeProcesso @relation(fields: [tipoProcessoId], references: [id])
+  faseProcessoId Int
+  faseProcesso   FaseProcesso   @relation(fields: [faseProcessoId], references: [id])
+  vitimaId       Int
+  vitima         Vitima         @relation(fields: [vitimaId], references: [id])
+  userId         String
+  user           User           @relation(fields: [userId], references: [id])
+  status         String         // Status do processo (ex.: "Enviado", "Negado", etc.)
+  criado_em      DateTime       @default(now())
+  atualizado_em  DateTime       @updatedAt
+}
+
+model TiposDeProcesso {
+  id        Int @id @default(autoincrement())
+  nome      String
+  activo    Boolean
+  userId    String
+  user      User @relation(fields: [userId], references: [id])
+  processo Processo[]
+}
+
+model FaseProcesso {
+  id          Int      @id @default(autoincrement())
+  nome        String
+  cor_fundo   String
+  cor_fonte   String
+  pendencia   Boolean
+  muda_fase   Boolean
+  activo      Boolean
+  criado_em   DateTime @default(now())
+  atualizado_em DateTime @updatedAt
+  userId      String
+  user        User @relation(fields: [userId], references: [id])
+  processo Processo[]
+
+  @@index([userId])
+}
+
+model Prioridades {
+  id        Int @id @default(autoincrement())
+  nome      String
+  cor_fundo String
+  cor_fonte String
+  activo    Boolean
+  userId    String
+  user      User @relation(fields: [userId], references: [id])
+}
+
+model Parceiro {
+  id        Int @id @default(autoincrement())
+  nome      String
+  uf        String
+  cidade    String
+  userId    String
+  user      User @relation(fields: [userId], references: [id])
+}
+
+model Cliente {
+  id        Int @id @default(autoincrement())
+  nome      String
+  cpf       Int
+  rg        Int
+  userId    String
+  user      User @relation(fields: [userId], references: [id])
+}
+
+model Banco {
+  id        Int @id @default(autoincrement())
+  nome      String
+  agencia   Int
+  conta     Int
+  userId    String
+  user      User @relation(fields: [userId], references: [id])
+}
+
+model Prioridade {
+  id        Int @id @default(autoincrement())
+  nome      String
+  cor_fundo String
+  cor_fonte String
+  userId    String
+  user      User @relation(fields: [userId], references: [id])
+}
+
+model Seguradora {
+  id        Int @id @default(autoincrement())
+  nome      String
+  userId    String
+  user      User @relation(fields: [userId], references: [id])
+}
+
+model TipoDeVeiculo {
+  id        Int @id @default(autoincrement())
+  placa     String
+  marca     String
+  modelo    String
+  rcf       Boolean
+  userId    String
+  user      User @relation(fields: [userId], references: [id])
+}
