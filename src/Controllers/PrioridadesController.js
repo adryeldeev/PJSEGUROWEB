@@ -60,6 +60,33 @@ async findAllPrioridades(req,res){
     }
 },
 
+async findPrioridadeById(req,res){
+    const { id } = req.params;
+    const userId = req.userId; // O userId vem do middleware de autenticação
+
+    try {
+        const prioridadeExisting = await prisma.prioridades.findFirst({
+            where: { id: Number(id), userId: userId }
+        });
+
+        if(!prioridadeExisting){
+            return res.status(404).json({messag:'Prioridad não existe'})
+        }
+        
+        return res.status(200).json({
+            error: false,
+            message: 'Prioridade encontrada com sucesso!',
+            prioridade:prioridadeExisting
+        })
+
+        
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+        
+    }
+
+},
+
 async updatePrioridade(req,res){
     const { id } = req.params;
     const { nome, cor_fundo, cor_fonte, activo } = req.body;
