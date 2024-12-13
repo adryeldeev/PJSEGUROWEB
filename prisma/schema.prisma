@@ -21,7 +21,6 @@ model User {
   parceiro     Parceiro[]
   cliente      Cliente[]
   banco        Banco[]
-  prioridade   Prioridade[]
   seguradora   Seguradora[]
   tipoDeVeiculo TipoDeVeiculo[]
 }
@@ -131,14 +130,7 @@ model Banco {
   user      User @relation(fields: [userId], references: [id])
 }
 
-model Prioridade {
-  id        Int @id @default(autoincrement())
-  nome      String
-  cor_fundo String
-  cor_fonte String
-  userId    String
-  user      User @relation(fields: [userId], references: [id])
-}
+
 
 model Seguradora {
   id        Int @id @default(autoincrement())
