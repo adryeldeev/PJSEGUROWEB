@@ -59,6 +59,28 @@ export default {
             return res.status(500).json({ message: "Ocorreu um erro interno no servidor." });
         }
     },
+    async findProcessoById(req,res){
+        const { id } = req.params;
+        const userId = req.userId;
+        try {
+            const processo = await prisma.faseProcesso.findFirst({
+                where: { id: Number(id), userId }
+            });
+            if (!processo) {
+                return res.status(404).json({ message: "Processo não encontrado." });
+            }
+            return res.json({
+                error: false,
+                message: "Processo encontrado com sucesso",
+                processo
+            });
+            
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ message: "Ocorreu um erro interno no servidor." });
+            
+        }
+    }
 
     async updateProcesso(req, res) {
         const { id } = req.params;

@@ -6,6 +6,8 @@ import TiposDeProcesso from '../Controllers/TiposDeProcesso.js';
 import PrioridadesController from '../Controllers/PrioridadesController.js';
 import ClienteController from '../Controllers/ClienteController.js';
 import BancoController from '../Controllers/BancoController.js';
+import SeguradoraController from '../Controllers/SeguradoraController.js'
+import TipoDeVeiculoController from '../Controllers/TipoDeVeiculoController.js';
 const router = Router()
 
 router.post('/createUser',UserController.createUser)
@@ -36,13 +38,30 @@ router.post('/createCliente', authenticate,ClienteController.createCliente)
 router.get('/clientes', authenticate,ClienteController.findAllClientes)
 router.get('/cliente/:id', authenticate,ClienteController.findClienteById)
 router.put('/updateCliente/:id', authenticate,ClienteController.updateCliente)
-router.delete('/delete/:id', authenticate,ClienteController.deleteCliente)
+router.delete('/deleteCliente/:id', authenticate,ClienteController.deleteCliente)
 
 //Banco
-router.post('/createCliente', authenticate,BancoController.createBanco)
-router.get('/clientes', authenticate,BancoController.findAllBancos)
-router.get('/cliente/:id', authenticate,BancoController.findBancoById)
-router.put('/updateCliente/:id', authenticate,BancoController.updateBanco)
-router.delete('/delete/:id', authenticate,BancoController.deleteBanco)
+router.post('/createBanco', authenticate,BancoController.createSeguradora)
+router.get('/bancos', authenticate,BancoController.findAllSeguradoras)
+router.get('/banco/:id', authenticate,BancoController.findSeguradoraById)
+router.put('/updateBanco/:id', authenticate,BancoController.updateSeguradora)
+router.delete('/deleteBanco/:id', authenticate,BancoController.deleteSeguradora)
+
+
+//Seguradora
+router.post('/createSeguradora', authenticate,SeguradoraController.createBanco)
+router.get('/seguradoras', authenticate,SeguradoraController.findAllBancos)
+router.get('/segurado/:id', authenticate,SeguradoraController.findBancoById)
+router.put('/updateSeguradora/:id', authenticate,SeguradoraController.updateBanco)
+router.delete('/deleteSeguradora/:id', authenticate,SeguradoraController.deleteBanco)
+
+
+//TiposDeVeiculo
+router.post('/createTiposDeVeiculo', authenticate,TipoDeVeiculoController.createTipoDeVeiculo)
+router.get('/TiposDeVeiculos', authenticate,TipoDeVeiculoController.findAllTipoVeiculos)
+router.get('/TiposDeVeiculo/:id', authenticate,TipoDeVeiculoController.findTipoDeVeiculoById)
+router.put('/updateTiposDeVeiculo/:id', authenticate,TipoDeVeiculoController.updateTipoDeVeiculo)
+router.delete('/deleteTiposDeVeiculo/:id', authenticate,TipoDeVeiculoController.deleteTipoDeVeiculo)
+
 
 export { router}

@@ -37,7 +37,7 @@ export default {
     }
   },
 
-  async getSeguradoras(req, res) {
+  async findAllSeguradoras(req, res) {
     const userId = req.userId;
 
     try {
@@ -58,7 +58,7 @@ export default {
     }
   },
 
-  async getSeguradorasById(req, res) {
+  async findSeguradoraById(req, res) {
     const { id } = req.params;
 
     try {
