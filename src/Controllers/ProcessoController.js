@@ -80,7 +80,7 @@ export default {
             return res.status(500).json({ message: "Ocorreu um erro interno no servidor." });
             
         }
-    }
+    },
 
     async updateProcesso(req, res) {
         const { id } = req.params;
