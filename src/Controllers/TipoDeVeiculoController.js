@@ -5,10 +5,10 @@ const prisma = new PrismaClient();
 
 export default {
     async createTipoDeVeiculo(req,res){
-        const {placa, marca, modelo, rcf } = req.body;
+        const {nome, placa, marca, modelo } = req.body;
         const userId = req.userId;
         
-        if (!placa || !marca || !modelo || rcf === undefined) {
+        if (!nome || !placa || !marca || !modelo) {
             return res.status(400).json({ message: "Preencha todos os campos obrigatórios." });
         }
 
@@ -22,7 +22,7 @@ export default {
             }
             
             const tipoDeVeiculo = await prisma.tipoDeVeiculo.create({
-                data: { placa, marca, modelo, rcf, userId }
+                data: {nome, placa, marca, modelo, userId }
             });
             
             return res.status(201).json({
@@ -85,9 +85,9 @@ export default {
     
     async updateTipoDeVeiculo(req, res) {
         const { id } = req.params;
-        const { placa, marca, modelo, rcf } = req.body;
+        const { nome,placa, marca, modelo } = req.body;
         
-        if (!placa ||!marca ||!modelo || rcf === undefined) {
+        if (!nome || !placa ||!marca ||!modelo) {
             return res.status(400).json({ message: "Preencha todos os campos obrigatórios." });
         }
         try {
