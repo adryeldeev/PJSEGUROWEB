@@ -1,14 +1,56 @@
 import {Router } from 'express'
+import path from 'path';
+import multer from 'multer'
+import { fileURLToPath } from 'url';
+import { authenticate } from './../middlewares/auth.js';
 import UserController from '../Controllers/UserController.js'
 import ProcessoController from '../Controllers/ProcessoController.js'
-import { authenticate } from './../middlewares/auth.js';
 import TiposDeProcesso from '../Controllers/TiposDeProcesso.js';
 import PrioridadesController from '../Controllers/PrioridadesController.js';
 import ClienteController from '../Controllers/ClienteController.js';
 import BancoController from '../Controllers/BancoController.js';
 import TipoDeVeiculoController from '../Controllers/TipoDeVeiculoController.js'
 import SeguradoraController from '../Controllers/SeguradoraController.js'
+import { deleteDocumento, getDocumentoById, getDocumentos, updateDocumento, uploadDocumento } from '../Controllers/uploadDocumento.js';
+
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Configuração do armazenamento de arquivos
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const uploadsDir = path.join(__dirname, "../../uploads/");
+        cb(null, uploadsDir); // Diretório para salvar as imagens
+    },
+    filename: (req, file, cb) => {
+        const uniqueName = `${Date.now()}-${file.originalname}`;
+        cb(null, uniqueName); // Nome único para o arquivo
+    },
+});
+
+// Definindo o multer com configurações de arquivo aceito
+const upload = multer({
+    storage,
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = ["image/jpeg", "image/png", "image/jpg", "application/pdf"];
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error("Tipo de arquivo não suportado. Apenas JPEG, PNG, JPG e PDF são permitidos."), false);
+        }
+    },
+});
+
 const router = Router()
+
+
+router.post('/uploadDocumento',authenticate, upload.single('imagem'), uploadDocumento); // Upload
+router.get('/documentos', authenticate, getDocumentos); 
+router.get('/documento/:id', authenticate, getDocumentoById); 
+router.update('/updateDocumento/:id', authenticate, updateDocumento); 
+router.delete('/deleteDocumento/:id', authenticate, deleteDocumento); 
+
 
 router.post('/createUser',UserController.createUser)
 router.post('/login', UserController.loginUser)
