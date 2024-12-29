@@ -48,12 +48,13 @@ const router = Router()
 router.post('/uploadDocumento',authenticate, upload.single('imagem'), uploadDocumento); // Upload
 router.get('/documentos', authenticate, getDocumentos); 
 router.get('/documento/:id', authenticate, getDocumentoById); 
-router.update('/updateDocumento/:id', authenticate, updateDocumento); 
+router.put('/updateDocumento/:id', authenticate, updateDocumento); 
 router.delete('/deleteDocumento/:id', authenticate, deleteDocumento); 
 
 
 router.post('/createUser',UserController.createUser)
 router.post('/login', UserController.loginUser)
+router.get('/user/:id',authenticate, UserController.getUserById)
 
 //Processo
 router.post('/createProcesso',authenticate,ProcessoController.createProcesso)
