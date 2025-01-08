@@ -52,7 +52,12 @@ export default {
                 where: { userId }
             });
 
-            return res.status(200).json(processos);
+            return res.status(200).json(
+                {
+                    error: false,
+                    message: 'Processos encontrados com sucesso!',
+                    processos
+                });
 
         } catch (error) {
             console.error(error);
