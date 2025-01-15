@@ -9,48 +9,48 @@ generator client {
 }
 
 model User {
-  id           String      @id @default(uuid())
+  id           String      @id @default(uuid()) // ID do usuário como UUID
   username     String
   email        String
   password     String
-  vitimas      Vitima[]    // Relacionamento com vítimas
-  processos    Processo[]  // Relacionamento indireto via processos
+  vitimas      Vitima[]    
+  processos    Processo[]  
   fasesProcesso FaseProcesso[] 
-  tiposDeProcesso TiposDeProcesso[]
-  prioridades  Prioridades[]
-  parceiro     Parceiro[]
-  cliente      Cliente[]
-  banco        Banco[]
-  seguradora   Seguradora[]
-  tipoDeVeiculo TipoDeVeiculo[]
-  documento     Documento[]
+  tiposDeProcesso TiposDeProcesso[] 
+  prioridades  Prioridades[] 
+  parceiro     Parceiro[] 
+  cliente      Cliente[] 
+  banco        Banco[] 
+  seguradora   Seguradora[] 
+  tipoDeVeiculo TipoDeVeiculo[] 
+  documento     Documento[] // Relacionamento com documentos
 }
 
 model Vitima {
-  id              Int         @id @default(autoincrement())
-  nome            String
-  cpf             Int
-  rg              Int
-  data_nascimento DateTime
-  data_emissao    DateTime
-  orgao_expedidor String
-  activo          Boolean
-  profissao       String
-  renda_mensal    Int
-  cep             Int
-  uf              String
-  endereco        String
-  numero          Int
-  sexo            String
-  complemento     String
-  bairro          String
-  cidade          String
-  email           String
-  telefone01      Int
-  telefone02      Int
-  userId          String
-  user            User         @relation(fields: [userId], references: [id])
-  processos       Processo[]   // Relacionamento com processos
+  id              Int         @id @default(autoincrement()) // ID único da vítima
+  nome            String      // Nome completo da vítima
+  cpf             String      @unique // CPF da vítima (único)
+  rg              String      @unique // RG da vítima (único)
+  data_nascimento DateTime    // Data de nascimento da vítima
+  data_emissao    DateTime    // Data de emissão do RG
+  orgao_expedidor String      // Órgão expedidor do RG
+  activo          Boolean     // Status da vítima (se está ativa ou não)
+  profissao       String      // Profissão da vítima
+  renda_mensal    Int         // Renda mensal da vítima
+  cep             Int         // CEP do endereço da vítima
+  uf              String      // Estado (UF) da vítima
+  endereco        String      // Endereço completo
+  numero          Int         // Número da residência
+  sexo            String      // Sexo da vítima
+  complemento     String?     // Complemento do endereço (opcional)
+  bairro          String      // Bairro onde a vítima reside
+  cidade          String      // Cidade onde a vítima reside
+  email           String?     // E-mail da vítima (opcional)
+  telefone01      Int         // Telefone 1 da vítima
+  telefone02      Int?        // Telefone 2 da vítima (opcional)
+  userId          String      // ID do usuário que criou a vítima
+  user            User        @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
+  processos       Processo[]  // Relacionamento com processos que a vítima está envolvida
 }
 
 model Processo {
@@ -63,7 +63,7 @@ model Processo {
   vitimaId       Int
   vitima         Vitima         @relation(fields: [vitimaId], references: [id])
   userId         String
-  user           User           @relation(fields: [userId], references: [id])
+  user           User           @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
   status         String         // Status do processo (ex.: "Enviado", "Negado", etc.)
   criado_em      DateTime       @default(now())
   atualizado_em  DateTime       @updatedAt
@@ -74,22 +74,21 @@ model TiposDeProcesso {
   nome      String
   activo    Boolean
   userId    String
-  user      User @relation(fields: [userId], references: [id])
-  processo Processo[]
+  user      User @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
+  processo Processo[] // Relacionamento com processos
 }
 
 model Documento {
-  id         Int       @id @default(autoincrement())
-  tipo       String    // Exemplo: "Laudo de Lesões", "Comprovante de Residência"
-  descricao  String?   // Opcional
-  arquivoUrl String    // Caminho do arquivo (imagem/PDF)
-  metadata   Json?     // Para dados adicionais específicos de cada tipo
+  id         Int      @id @default(autoincrement())
+  tipo       String
+  descricao  String
+  arquivoUrl String
   clienteId  Int
-  cliente    Cliente   @relation(fields: [clienteId], references: [id])
-  userId      String
-  user        User @relation(fields: [userId], references: [id])
-  criadoEm   DateTime  @default(now())
+  userId     String  // Agora o userId está correto
+  user       User     @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
+  cliente    Cliente  @relation(fields: [clienteId], references: [id]) // Relacionamento com o cliente
 }
+
 model FaseProcesso {
   id          Int      @id @default(autoincrement())
   nome        String
@@ -102,7 +101,7 @@ model FaseProcesso {
   atualizado_em DateTime @updatedAt
   userId      String
   user        User @relation(fields: [userId], references: [id])
-  processo Processo[]
+  processo    Processo[] // Relacionamento com processos
 
   @@index([userId])
 }
@@ -114,7 +113,7 @@ model Prioridades {
   cor_fonte String
   activo    Boolean
   userId    String
-  user      User @relation(fields: [userId], references: [id])
+  user      User @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
 }
 
 model Parceiro {
@@ -123,7 +122,7 @@ model Parceiro {
   uf        String
   cidade    String
   userId    String
-  user      User @relation(fields: [userId], references: [id])
+  user      User @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
 }
 
 model Cliente {
@@ -132,8 +131,8 @@ model Cliente {
   cpf       String @unique
   rg        String
   userId    String
-  documento Documento[]
-  user      User @relation(fields: [userId], references: [id])
+  documento Documento[] // Relacionamento com documentos
+  user      User @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
 }
 
 model Banco {
@@ -142,16 +141,14 @@ model Banco {
   agencia   String 
   conta     String @unique
   userId    String
-  user      User @relation(fields: [userId], references: [id])
+  user      User @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
 }
-
-
 
 model Seguradora {
   id        Int @id @default(autoincrement())
   nome      String
   userId    String
-  user      User @relation(fields: [userId], references: [id])
+  user      User @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
 }
 
 model TipoDeVeiculo {
@@ -161,6 +158,5 @@ model TipoDeVeiculo {
   marca     String
   modelo    String
   userId    String
-  user      User @relation(fields: [userId], references: [id])
+  user      User @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
 }
-

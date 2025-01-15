@@ -12,6 +12,9 @@ const __dirname = path.dirname(__filename);
 export const uploadDocumento = async (req, res) => {
     try {
         const { tipo, descricao, clienteId } = req.body;
+        const userId = req.userId;
+
+       
 
         // Verificar se o arquivo foi enviado
         if (!req.file) {
@@ -20,9 +23,15 @@ export const uploadDocumento = async (req, res) => {
 
         const arquivoUrl = `/uploads/${req.file.filename}`;
 
-        // Salvar no banco
+        // Salvar no banco com clienteId
         const documento = await prisma.documento.create({
-            data: { tipo, descricao, arquivoUrl, clienteId: parseInt(clienteId) },
+            data: { 
+                tipo, 
+                descricao, 
+                arquivoUrl, 
+                userId: userId, 
+                clienteId: parseInt(clienteId) 
+            },
         });
 
         res.status(201).json({ message: 'Documento enviado com sucesso.', documento });
@@ -31,6 +40,7 @@ export const uploadDocumento = async (req, res) => {
         res.status(500).json({ error: 'Erro ao enviar documento.', detalhes: error.message });
     }
 };
+
 
 // Função para buscar todos os documentos
 export const getDocumentos = async (req, res) => {
@@ -92,12 +102,12 @@ export const deleteDocumento = async (req, res) => {
     }
 };
 
-
 // Função para editar (atualizar) um documento
 export const updateDocumento = async (req, res) => {
     try {
         const { id } = req.params;
         const { tipo, descricao, clienteId } = req.body;
+        const userId = req.userId;
 
         // Buscar documento existente
         const documentoExistente = await prisma.documento.findUnique({
@@ -122,13 +132,14 @@ export const updateDocumento = async (req, res) => {
             arquivoUrl = `/uploads/${req.file.filename}`;
         }
 
-        // Atualizar no banco de dados
+        // Atualizar no banco de dados com clienteId
         const documentoAtualizado = await prisma.documento.update({
             where: { id: parseInt(id) },
             data: {
                 tipo,
                 descricao,
                 arquivoUrl,
+                userId: userId ? parseInt(userId) : documentoExistente.userId,
                 clienteId: clienteId ? parseInt(clienteId) : documentoExistente.clienteId,
             },
         });

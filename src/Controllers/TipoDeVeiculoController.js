@@ -87,7 +87,7 @@ export default {
         const { id } = req.params;
         const { nome,placa, marca, modelo } = req.body;
         
-        if (!nome || !placa ||!marca ||!modelo) {
+        if (nome === undefined || placa === undefined ||marca === undefined ||modelo === undefined) {
             return res.status(400).json({ message: "Preencha todos os campos obrigatórios." });
         }
         try {
@@ -101,7 +101,7 @@ export default {
             
             const tipoDeVeiculo = await prisma.tipoDeVeiculo.update({
                 where: { id: Number(id) },
-                data: { placa, marca, modelo, rcf }
+                data: { placa, marca, modelo }
             });
             
             return res.status(200).json({

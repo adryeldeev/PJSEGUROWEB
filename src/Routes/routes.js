@@ -45,7 +45,7 @@ const upload = multer({
 const router = Router()
 
 
-router.post('/uploadDocumento',authenticate, upload.single('imagem'), uploadDocumento); // Upload
+router.post('/uploadDocumento',authenticate, upload.single('file'), uploadDocumento); // Upload
 router.get('/documentos', authenticate, getDocumentos); 
 router.get('/documento/:id', authenticate, getDocumentoById); 
 router.put('/updateDocumento/:id', authenticate, updateDocumento); 
@@ -101,8 +101,8 @@ router.delete('/deleteBanco/:id', authenticate,BancoController.deleteBanco)
 
 //TiposDeVeiculo
 router.post('/createTiposDeVeiculo', authenticate,TipoDeVeiculoController.createTipoDeVeiculo)
-router.get('/TiposDeVeiculos', authenticate,TipoDeVeiculoController.findAllTipoVeiculos)
-router.get('/TiposDeVeiculo/:id', authenticate,TipoDeVeiculoController.findTipoDeVeiculoById)
+router.get('/tiposDeVeiculos', authenticate,TipoDeVeiculoController.findAllTipoVeiculos)
+router.get('/tiposDeVeiculo/:id', authenticate,TipoDeVeiculoController.findTipoDeVeiculoById)
 router.put('/updateTiposDeVeiculo/:id', authenticate,TipoDeVeiculoController.updateTipoDeVeiculo)
 router.delete('/deleteTiposDeVeiculo/:id', authenticate,TipoDeVeiculoController.deleteTipoDeVeiculo)
 

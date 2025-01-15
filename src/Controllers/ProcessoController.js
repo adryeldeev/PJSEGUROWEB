@@ -92,6 +92,9 @@ export default {
         const { nome, cor_fundo, cor_fonte, pendencia, muda_fase, activo } = req.body;
         const userId = req.userId;
 
+        if (!nome || pendencia === undefined || muda_fase === undefined || activo === undefined) {
+            return res.status(400).json({ message: "Preencha todos os campos obrigatórios corretamente." });
+        }
         try {
             const processoExisting = await prisma.faseProcesso.findUnique({
                 where: { id: Number(id) }
