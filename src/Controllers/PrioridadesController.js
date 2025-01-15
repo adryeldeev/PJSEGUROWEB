@@ -92,7 +92,7 @@ async updatePrioridade(req,res){
     const { nome, cor_fundo, cor_fonte, activo } = req.body;
     const userId = req.userId; // O userId vem do middleware de autenticação
     
-    if (!nome ||!cor_fundo ||!cor_fonte || activo === undefined) {
+    if (!nome || activo === undefined) {
         return res.status(400).json({ message: "Preencha todos os campos obrigatórios." });
     }
 
@@ -132,35 +132,40 @@ async updatePrioridade(req,res){
     
 }
 },
-
-async deletePrioridade(req,res){
+async deletePrioridade(req, res) {
     const { id } = req.params;
-    const userId = req.userId; // O userId vem do middleware de autenticação
-       
+    const userId = req.userId;
 
     try {
+        // Verificar se a prioridade existe para o usuário
         const prioridadeExisting = await prisma.prioridades.findFirst({
-            where: {id, userId}
+            where: {
+                id: Number(id),
+                userId: userId,
+            },
         });
-        if(!prioridadeExisting){
-            return res.status(404).json({message: "Tipo de processo não encontrado."});        
-            }
-    
-        const prioridade = await prisma.prioridades.delete({
-            where: {id, userId}
+
+        if (!prioridadeExisting) {
+            return res.status(404).json({ message: "Prioridade não encontrada." });
+        }
+
+        // Excluir a prioridade
+        const deletedPrioridades = await prisma.prioridades.delete({
+            where: { id: Number(id) },
         });
-        if(!prioridade)
-        {return res.status(404).json({message: "Tipo de processo não encontrado."});            }
-        return res.status(204).json({
-            error: false,
-            message: 'Prioridade excluida com sucesso!',
-            prioridade
-        })
+
+        return res.status(200).json({
+            message: "Prioridade excluída com sucesso.",
+            prioridade: deletedPrioridades,
+        });
     } catch (error) {
         console.error(error);
-            return res.status(500).json({message: "Ocorreu um erro ao tentar eliminar o tipo de processo."});
+        return res.status(500).json({
+            message: "Ocorreu um erro ao tentar excluir a prioridade.",
+        });
     }
-      
-    }
+}
+
+
     
 }
