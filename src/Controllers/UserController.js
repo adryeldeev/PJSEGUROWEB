@@ -3,8 +3,8 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 dotenv.config();
-const { PrismaClient } = pkg;
-const prisma = new PrismaClient();
+const { PrismaClient } = pkg;     
+const prisma = new PrismaClient();  
 
 const messages = {
   fieldsMissing: "Preencha todos os campos",
