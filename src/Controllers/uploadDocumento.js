@@ -11,7 +11,7 @@ const __dirname = path.dirname(__filename);
 // Função para upload de documento
 export const uploadDocumento = async (req, res) => {
     try {
-        const { tipo, descricao, clienteId } = req.body;
+        const { tipo, descricao } = req.body;
         const userId = req.userId;
 
        
@@ -30,7 +30,7 @@ export const uploadDocumento = async (req, res) => {
                 descricao, 
                 arquivoUrl, 
                 userId: userId, 
-                clienteId: parseInt(clienteId) 
+                 
             },
         });
 
@@ -106,7 +106,7 @@ export const deleteDocumento = async (req, res) => {
 export const updateDocumento = async (req, res) => {
     try {
         const { id } = req.params;
-        const { tipo, descricao, clienteId } = req.body;
+        const { tipo, descricao } = req.body;
         const userId = req.userId;
 
         // Buscar documento existente
@@ -139,8 +139,8 @@ export const updateDocumento = async (req, res) => {
                 tipo,
                 descricao,
                 arquivoUrl,
-                userId: userId ? parseInt(userId) : documentoExistente.userId,
-                clienteId: clienteId ? parseInt(clienteId) : documentoExistente.clienteId,
+                userId: userId ? parseInt(userId) : documentoExistente.userId
+                
             },
         });
 
