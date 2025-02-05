@@ -4,10 +4,9 @@ import multer from 'multer'
 import { fileURLToPath } from 'url';
 import { authenticate } from './../middlewares/auth.js';
 import UserController from '../Controllers/UserController.js'
-import ProcessoController from '../Controllers/ProcessoController.js'
+import FaseProcessoController from '../Controllers/FaseProcessoController.js'
 import TiposDeProcesso from '../Controllers/TiposDeProcesso.js';
 import PrioridadesController from '../Controllers/PrioridadesController.js';
-import ClienteController from '../Controllers/ClienteController.js';
 import BancoController from '../Controllers/BancoController.js';
 import TipoDeVeiculoController from '../Controllers/TipoDeVeiculoController.js'
 import SeguradoraController from '../Controllers/SeguradoraController.js'
@@ -58,10 +57,10 @@ router.post('/login', UserController.loginUser)
 router.get('/user/:id',authenticate, UserController.getUserById)
 
 //Processo
-router.post('/createProcesso',authenticate,ProcessoController.createProcesso)
-router.get('/processos',authenticate,ProcessoController.findAll)
-router.put('/updateProcesso/:id',authenticate,ProcessoController.updateProcesso)
-router.delete('/deleteProcesso/:id',authenticate,ProcessoController.deleteProcesso)
+router.post('/createProcesso',authenticate,FaseProcessoController.createProcesso)
+router.get('/processos',authenticate,FaseProcessoController.findAll)
+router.put('/updateProcesso/:id',authenticate,FaseProcessoController.updateProcesso)
+router.delete('/deleteProcesso/:id',authenticate,FaseProcessoController.deleteProcesso)
 
 //TipoDeProcesso
 router.post('/createTipoProcesso',authenticate,TiposDeProcesso.createTiposProcesso)
@@ -76,13 +75,6 @@ router.get('/prioridades',authenticate,PrioridadesController.findAllPrioridades)
 router.get('/prioridade/:id',authenticate,PrioridadesController.findPrioridadeById)
 router.put('/updatePrioridade/:id',authenticate,PrioridadesController.updatePrioridade)
 router.delete('/deletePrioridade/:id',authenticate,PrioridadesController.deletePrioridade)
-
-//cliente
-router.post('/createCliente', authenticate,ClienteController.createCliente)
-router.get('/clientes', authenticate,ClienteController.findAllClientes)
-router.get('/cliente/:id', authenticate,ClienteController.findClienteById)
-router.put('/updateCliente/:id', authenticate,ClienteController.updateCliente)
-router.delete('/deleteCliente/:id', authenticate,ClienteController.deleteCliente)
 
 //Banco
 router.post('/createBanco', authenticate,BancoController.createBanco)

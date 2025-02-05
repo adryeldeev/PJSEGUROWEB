@@ -10,26 +10,27 @@ export default {
         const { 
             nome, cpf, rg, data_nascimento, data_emissao, orgao_expedidor, 
             profissao, renda_mensal, cep, uf, endereco, numero, sexo, bairro, 
-            cidade, email, telefone01, telefone02, activo 
+            cidade, email, telefone01, telefone02, activo = false
         } = req.body;
     
         const userId = req.userId;
     
         // Validar campos obrigatórios
-        if (!nome || !cpf || activo === undefined) {
+        if (!nome || !cpf || activo === undefined || activo === null) {
             return res.status(400).json({ message: "Preencha todos os campos obrigatórios." });
         }
     
-        // Validar formato do CPF
-        const regex = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
-        const isValid = regex.test(cpf);
-        if (!isValid) {
-            return res.status(400).json({ message: "CPF inválido. Formato correto: 999.999.999-99." });
-        }
-    
         // Normalizar CPF (remover caracteres não numéricos)
-        const cpfNormalized = cpf.replace(/[^\d]+/g, ''); 
+        const cpfNormalized = cpf.replace(/\D/g, ''); 
     
+        // Validar CPF após normalização
+        if (cpfNormalized.length !== 11) {
+            return res.status(400).json({ message: "CPF inválido. Deve conter 11 dígitos numéricos." });
+        }
+        const nomeNomarlized = nome? nome.toLowerCase() : null;
+        // Normalizar CEP (remover caracteres não numéricos ou converter para número se necessário)
+        const cepNormalized = cep ? parseInt(cep.replace(/\D/g, ''), 10) : null;
+      
         try {
             // Verificar se a vítima já existe
             const vitimaExisting = await prisma.vitima.findUnique({
@@ -40,18 +41,37 @@ export default {
                 return res.status(400).json({ message: "Vítima com este CPF já existe." });
             }
     
-            // Converter datas corretamente (opcionalmente usando moment-timezone)
-            const dataNascimentoAjusted = data_nascimento ? new Date(data_nascimento) : null;
-            const dataEmissaoAjusted = data_emissao ? new Date(data_emissao) : null;
+            // Converter datas corretamente
+            const dataNascimentoAjusted = data_nascimento 
+                ? moment.tz(data_nascimento, "America/Sao_Paulo").toDate() 
+                : null;
+            const dataEmissaoAjusted = data_emissao 
+                ? moment.tz(data_emissao, "America/Sao_Paulo").toDate() 
+                : null;
     
             // Criar vítima
             const vitima = await prisma.vitima.create({
                 data: {
-                    nome, cpf: cpfNormalized, rg, data_nascimento: dataNascimentoAjusted, 
-                    data_emissao: dataEmissaoAjusted, orgao_expedidor, 
-                    profissao, renda_mensal, cep, uf, endereco, numero, 
-                    sexo, bairro, cidade, email, telefone01, telefone02, 
-                    activo, userId
+                    nome:nomeNomarlized,
+                    cpf: cpfNormalized,
+                    rg: rg || "",
+                    data_nascimento: dataNascimentoAjusted,
+                    data_emissao: dataEmissaoAjusted,
+                    orgao_expedidor: orgao_expedidor || "",
+                    profissao: profissao ?? null,
+                    renda_mensal: renda_mensal || null,
+                    cep: cepNormalized,
+                    uf: uf ?? null,
+                    endereco: endereco || "",
+                    numero: numero || null,
+                    sexo: sexo || null,
+                    bairro: bairro || "",
+                    cidade: cidade || "",
+                    email: email || "",
+                    telefone01: telefone01 ?? null,
+                    telefone02: telefone02 ?? null,
+                    activo,
+                    userId
                 }
             });
     
@@ -78,7 +98,6 @@ export default {
         }
     },
     
-
     // Buscar vítima por ID
     async findById(req, res) {
         const { id } = req.params;
@@ -97,7 +116,7 @@ export default {
             return res.status(500).json({ message: "Erro ao buscar a vítima." });
         }
     },
-
+    
     // Atualizar vítima
     async updateVitima(req, res) {
         const { id } = req.params;
@@ -108,7 +127,6 @@ export default {
         } = req.body;
     
         try {
-            // Verificar se a vítima existe
             const vitimaExists = await prisma.vitima.findUnique({
                 where: { id: Number(id) }
             });
@@ -116,43 +134,37 @@ export default {
             if (!vitimaExists) {
                 return res.status(404).json({ message: "Vítima não encontrada." });
             }
-    
-            // Validar e normalizar CPF
+            
+            let cpfNormalized = vitimaExists.cpf;
             if (cpf) {
-                const regex = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
-                const isValid = regex.test(cpf);
-    
-                if (!isValid) {
-                    return res.status(400).json({ message: "CPF inválido. Formato correto: 999.999.999-99." });
+                cpfNormalized = cpf.replace(/\D/g, '');
+                if (cpfNormalized.length !== 11) {
+                    return res.status(400).json({ message: "CPF inválido. Deve conter 11 dígitos numéricos." });
                 }
-    
-                // Normalizar CPF (remover caracteres não numéricos)
-                const cpfNormalized = cpf.replace(/[^\d]+/g, '');
             }
     
-            // Montar objeto de atualização sem valores undefined
-            const dadosAtualizados = {};
-            if (nome) dadosAtualizados.nome = nome;
-            if (cpf) dadosAtualizados.cpf = cpfNormalized || cpf; // Usar o CPF normalizado, caso tenha sido enviado
-            if (rg) dadosAtualizados.rg = rg;
-            if (data_nascimento) dadosAtualizados.data_nascimento = new Date(data_nascimento);
-            if (data_emissao) dadosAtualizados.data_emissao = new Date(data_emissao);
-            if (orgao_expedidor) dadosAtualizados.orgao_expedidor = orgao_expedidor;
-            if (profissao) dadosAtualizados.profissao = profissao;
-            if (renda_mensal) dadosAtualizados.renda_mensal = renda_mensal;
-            if (cep) dadosAtualizados.cep = cep;
-            if (uf) dadosAtualizados.uf = uf;
-            if (endereco) dadosAtualizados.endereco = endereco;
-            if (numero) dadosAtualizados.numero = numero;
-            if (sexo) dadosAtualizados.sexo = sexo;
-            if (bairro) dadosAtualizados.bairro = bairro;
-            if (cidade) dadosAtualizados.cidade = cidade;
-            if (email) dadosAtualizados.email = email;
-            if (telefone01) dadosAtualizados.telefone01 = telefone01;
-            if (telefone02) dadosAtualizados.telefone02 = telefone02;
-            if (activo !== undefined) dadosAtualizados.activo = activo;
+            const dadosAtualizados = {
+                nome,
+                cpf: cpfNormalized,
+                rg,
+                data_nascimento: data_nascimento ? new Date(data_nascimento) : null,
+                data_emissao: data_emissao ? new Date(data_emissao) : null,
+                orgao_expedidor,
+                profissao,
+                renda_mensal,
+                cep,
+                uf,
+                endereco,
+                numero,
+                sexo,
+                bairro,
+                cidade,
+                email,
+                telefone01,
+                telefone02,
+                activo
+            };
     
-            // Atualizar a vítima com os dados fornecidos
             const vitimaAtualizada = await prisma.vitima.update({
                 where: { id: Number(id) },
                 data: dadosAtualizados
@@ -168,7 +180,6 @@ export default {
         }
     },
     
-
     // Deletar vítima
     async deleteVitima(req, res) {
         const { id } = req.params;
@@ -182,9 +193,7 @@ export default {
                 return res.status(404).json({ message: "Vítima não encontrada." });
             }
 
-            await prisma.vitima.delete({
-                where: { id: Number(id) }
-            });
+            await prisma.vitima.delete({ where: { id: Number(id) } });
 
             return res.status(200).json({ message: "Vítima deletada com sucesso!" });
         } catch (error) {
