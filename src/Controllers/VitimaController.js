@@ -200,5 +200,25 @@ export default {
             console.error(error);
             return res.status(500).json({ message: "Erro ao deletar a vítima." });
         }
+    },
+
+    async findVitimaByCpf(req, res) {
+        const { cpf } = req.params;
+        const cpfNormalized = cpf.replace(/\D/g, ''); // Normalizar CPF
+
+        try {
+            const vitima = await prisma.vitima.findUnique({
+                where: { cpf: cpfNormalized }
+            });
+
+            if (!vitima) {
+                return res.status(404).json({ message: "Vítima não encontrada." });
+            }
+
+            return res.status(200).json(vitima);
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ message: "Erro ao buscar a vítima." });
+        }
     }
 };
