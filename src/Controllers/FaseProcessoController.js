@@ -4,22 +4,22 @@ const prisma = new PrismaClient();
 
 export default {
     async createProcesso(req, res) {
-        const { nome, cor_fundo, cor_fonte, pendencia, muda_fase, activo } = req.body;
+        const { nome, cor_fundo, cor_fonte, pendencia, muda_fase, activo, status } = req.body;  // Incluindo o status
         const userId = req.userId;
-
-        if (!nome || !cor_fundo || !cor_fonte || typeof pendencia !== "boolean" || typeof muda_fase !== "boolean" || typeof activo !== "boolean") {
+    
+        if (!nome || !cor_fundo || !cor_fonte || typeof pendencia !== "boolean" || typeof muda_fase !== "boolean" || typeof activo !== "boolean" || !status) {
             return res.status(400).json({ message: "Preencha todos os campos obrigatórios corretamente." });
         }
-
+    
         try {
             const processoExisting = await prisma.faseProcesso.findFirst({
                 where: { nome, userId }
             });
-
+    
             if (processoExisting) {
                 return res.status(400).json({ message: "Processo com este nome já existe para este usuário." });
             }
-
+    
             const processo = await prisma.faseProcesso.create({
                 data: {
                     nome,
@@ -28,16 +28,17 @@ export default {
                     pendencia,
                     muda_fase,
                     activo,
+                    status,  // Salvando o status fornecido
                     userId
                 }
             });
-
+    
             return res.status(201).json({
                 error: false,
                 message: "Processo criado com sucesso!",
                 processo
             });
-
+    
         } catch (error) {
             console.error(error);
             return res.status(500).json({ message: "Ocorreu um erro interno no servidor." });

@@ -1,54 +1,132 @@
-import pkg from '@prisma/client';
-const { PrismaClient } = pkg;
+import { PrismaClient } from '@prisma/client';
+
 const prisma = new PrismaClient();
 
 export default {
-  async createProcesso(req, res) {
-    const { 
-      tipoProcessoId, // ID do tipo de processo
-      faseProcessoId, // ID da fase inicial do processo
-      vitimaId, // ID da vítima associada
-      status, // Status inicial do processo
-    } = req.body;
-   const userId= userId // ID do usuário que está criando o processo
+    // Criar um novo processo
+    async createProcesso(req, res) {
+        try {
+            const { vitimaId, tipoProcessoId, faseProcessoId, prioridadeId } = req.body;
+            const userId = req.userId;
 
-    try {
-      // Validação: verificar se a vítima, o tipo de processo e a fase existem
-      const vitimaExiste = await prisma.vitima.findUnique({ where: { id: vitimaId } });
-      if (!vitimaExiste) {
-        return res.status(404).json({ message: "Vítima não encontrada." });
-      }
+            // Verifica se a vítima existe
+            const vitima = await prisma.vitima.findUnique({
+                where: { id: vitimaId },
+            });
 
-      const tipoProcessoExiste = await prisma.tiposDeProcesso.findUnique({ where: { id: tipoProcessoId } });
-      if (!tipoProcessoExiste) {
-        return res.status(404).json({ message: "Tipo de processo não encontrado." });
-      }
+            if (!vitima) {
+                return res.status(404).json({ message: "Vítima não encontrada." });
+            }
 
-      const faseProcessoExiste = await prisma.faseProcesso.findUnique({ where: { id: faseProcessoId } });
-      if (!faseProcessoExiste) {
-        return res.status(404).json({ message: "Fase de processo não encontrada." });
-      }
+            // Cria o processo
+            const novoProcesso = await prisma.processo.create({
+                data: {
+                    tipoProcessoId: parseInt(tipoProcessoId),
+                    faseProcessoId: parseInt(faseProcessoId),
+                    vitimaId,
+                    prioridadeId: parseInt(prioridadeId),
+                    userId,
+                },
+            });
 
-      // Criar o processo
-      const novoProcesso = await prisma.processo.create({
-        data: {
-          numero,
-          tipoProcessoId,
-          faseProcessoId,
-          vitimaId,
-          status,
-          userId, // Associar o usuário que criou o processo
-        },
-      });
+            return res.status(201).json({
+                message: "Processo criado com sucesso.",
+                processo: novoProcesso,
+            });
 
-      // Retornar o processo criado para redirecionar no frontend
-      res.status(201).json({
-        message: "Processo criado com sucesso!",
-        processo: novoProcesso,
-      });
-    } catch (error) {
-      console.error("Erro ao criar processo:", error);
-      res.status(500).json({ message: "Erro ao criar processo.", error });
-    }
-  },
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ message: "Erro ao criar o processo.", error });
+        }
+    },
+
+    // Buscar todos os processos
+    async findAll(req, res) {
+        try {
+            const processos = await prisma.processo.findMany({
+                include: {
+                    vitima: true, // Inclui informações da vítima
+                    tipoProcesso: true,
+                    faseProcesso: true,
+                    prioridade: true,
+                    user: true,
+                },
+            });
+
+            return res.status(200).json(processos);
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ message: "Erro ao buscar os processos.", error });
+        }
+    },
+
+    // Buscar um processo pelo ID
+    async findById(req, res) {
+        try {
+            const { id } = req.params;
+
+            const processo = await prisma.processo.findUnique({
+                where: { id: parseInt(id) },
+                include: {
+                    vitima: true,
+                    tipoProcesso: true,
+                    faseProcesso: true,
+                    prioridade: true,
+                    user: true,
+                },
+            });
+
+            if (!processo) {
+                return res.status(404).json({ message: "Processo não encontrado." });
+            }
+
+            return res.status(200).json(processo);
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ message: "Erro ao buscar o processo.", error });
+        }
+    },
+
+    // Atualizar um processo
+    async updateProcesso(req, res) {
+        try {
+            const { id } = req.params;
+            const { tipoProcessoId, faseProcessoId, prioridadeId } = req.body;
+
+            const processoAtualizado = await prisma.processo.update({
+                where: { id: parseInt(id) },
+                data: {
+                    tipoProcessoId: tipoProcessoId ? parseInt(tipoProcessoId) : undefined,
+                    faseProcessoId: faseProcessoId ? parseInt(faseProcessoId) : undefined,
+                    prioridadeId: prioridadeId ? parseInt(prioridadeId) : undefined,
+                },
+            });
+
+            return res.status(200).json({
+                message: "Processo atualizado com sucesso.",
+                processo: processoAtualizado,
+            });
+
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ message: "Erro ao atualizar o processo.", error });
+        }
+    },
+
+    // Excluir um processo
+    async deleteProcesso(req, res) {
+        try {
+            const { id } = req.params;
+
+            await prisma.processo.delete({
+                where: { id: parseInt(id) },
+            });
+
+            return res.status(200).json({ message: "Processo excluído com sucesso." });
+
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ message: "Erro ao excluir o processo.", error });
+        }
+    },
 };
