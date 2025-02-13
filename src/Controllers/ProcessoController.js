@@ -6,37 +6,83 @@ export default {
     // Criar um novo processo
     async createProcesso(req, res) {
         try {
-            const { vitimaId, tipoProcessoId, faseProcessoId, prioridadeId } = req.body;
+           
+    
+            const { nome, cpf, rg, data_nascimento, data_emissao, orgao_expedidor, 
+                    profissao, renda_mensal, cep, uf, endereco, numero, sexo, bairro, 
+                    cidade, email, telefone01, telefone02, activo = false, 
+                    tipoProcessoId, faseProcessoId, prioridadeId } = req.body;
+    
             const userId = req.userId;
-
-            // Verifica se a vítima existe
-            const vitima = await prisma.vitima.findUnique({
-                where: { id: vitimaId },
-            });
-
-            if (!vitima) {
-                return res.status(404).json({ message: "Vítima não encontrada." });
+           
+            if (!cpf || typeof cpf !== 'string') {
+                return res.status(400).json({ message: "CPF é obrigatório e deve ser uma string válida." });
             }
-
-            // Cria o processo
+            // 🔹 Normalizar CPF (remover caracteres não numéricos)
+            const cpfNormalized = cpf.replace(/\D/g, ''); 
+            
+            if (!nome || !cpfNormalized || !tipoProcessoId || !faseProcessoId || !prioridadeId) {
+                return res.status(400).json({ message: "Preencha todos os campos obrigatórios." });
+            }
+    
+            // 🔹 Verifica se a vítima já existe pelo CPF
+            let vitima = await prisma.vitima.findUnique({
+                where: { cpf: cpfNormalized }
+            });
+    
+            // 🔹 Se a vítima não existir, criamos uma nova
+            if (!vitima) {
+                vitima = await prisma.vitima.create({
+                    data: {
+                        nome: nome.toLowerCase(),
+                        cpf: cpfNormalized,
+                        rg: rg || "",
+                        data_nascimento: data_nascimento ? new Date(data_nascimento) : null,
+                        data_emissao: data_emissao ? new Date(data_emissao) : null,
+                        orgao_expedidor: orgao_expedidor || "",
+                        profissao: profissao ?? null,
+                        renda_mensal: renda_mensal || null,
+                        cep: cep ? cep.toString() : null,
+                        uf: uf ?? null,
+                        endereco: endereco || "",
+                        numero: numero || null,
+                        sexo: sexo || null,
+                        bairro: bairro || "",
+                        cidade: cidade || "",
+                        email: email || "",
+                        telefone01: telefone01 ?? null,
+                        telefone02: telefone02 ?? null,
+                        activo,
+                        userId
+                    }
+                });
+    
+                console.log("Nova vítima criada:", vitima);
+            } else {
+                console.log("Vítima já existente:", vitima);
+            }
+    
+            // 🔹 Criar o processo com o ID da vítima encontrada/criada
             const novoProcesso = await prisma.processo.create({
                 data: {
-                    tipoProcessoId: parseInt(tipoProcessoId),
-                    faseProcessoId: parseInt(faseProcessoId),
-                    vitimaId,
-                    prioridadeId: parseInt(prioridadeId),
+                    tipoProcessoId: parseInt(tipoProcessoId,10),
+                    faseProcessoId: parseInt(faseProcessoId,10),
+                    vitimaId: vitima.id, // Usa o ID da vítima encontrada ou recém-criada
+                    prioridadeId: parseInt(prioridadeId,10),
                     userId,
                 },
             });
-
+        
+    
             return res.status(201).json({
                 message: "Processo criado com sucesso.",
                 processo: novoProcesso,
             });
 
+    
         } catch (error) {
-            console.error(error);
-            return res.status(500).json({ message: "Erro ao criar o processo.", error });
+            console.error("Erro detalhado:", error); // Log do erro para diagnóstico
+    return res.status(500).json({ message: "Erro ao criar o processo.", error })
         }
     },
 
@@ -130,3 +176,4 @@ export default {
         }
     },
 };
+

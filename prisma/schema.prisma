@@ -12,6 +12,7 @@ enum Sexo {
   MASCULINO
   FEMININO
 }
+
 model User {
   id                  String      @id @default(uuid()) // ID do usuário como UUID
   username            String
@@ -26,12 +27,11 @@ model User {
   banco               Banco[] 
   seguradora          Seguradora[] 
   tipoDeVeiculo       TipoDeVeiculo[] 
-  documento            Documento[] // Relacionamento com documentos
-  andamento            Andamento [] // Relacionamento com andamento com andamento
-  sinistro             Sinistro [] 
-  delegacia            Delegacia[]
+  documento           Documento[] // Relacionamento com documentos
+  andamento           Andamento[] // Relacionamento com andamentos
+  sinistro            Sinistro[] 
+  delegacia           Delegacia[]
 }
-
 
 model TiposDeProcesso {
   id        Int @id @default(autoincrement())
@@ -60,7 +60,6 @@ model FaseProcesso {
   pendencia    Boolean
   muda_fase    Boolean
   activo       Boolean
-  status       String    // Novo campo status
   criado_em    DateTime  @default(now())
   atualizado_em DateTime @updatedAt
   userId       String
@@ -70,6 +69,7 @@ model FaseProcesso {
 
   @@index([userId])
 }
+
 model Prioridades {
   id        Int @id @default(autoincrement())
   nome      String
@@ -78,7 +78,7 @@ model Prioridades {
   activo    Boolean
   userId    String
   user      User @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
-processo    Processo[]
+  processo  Processo[]
 }
 
 model Parceiro {
@@ -89,8 +89,6 @@ model Parceiro {
   userId    String
   user      User @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
 }
-
-
 
 model Banco {
   id        Int @id @default(autoincrement())
@@ -122,8 +120,8 @@ model Andamento {
   id                 Int            @id @default(autoincrement())
   data               DateTime?       @default(now())
   observacoes        String?
-  faseId             Int
-  fase               FaseProcesso   @relation(fields: [faseId], references: [id])
+  faseProcessoId     Int
+  faseProcesso       FaseProcesso   @relation(fields: [faseProcessoId], references: [id])
   userId             String
   user               User           @relation(fields: [userId], references: [id])
   processoId         Int
@@ -140,8 +138,6 @@ model Sinistro {
   processoId      Int
   processo        Processo       @relation(fields: [processoId], references: [id])
   delegacia       Delegacia[]
-
-
 }
 
 model Delegacia {
@@ -158,6 +154,7 @@ model Delegacia {
   userId          String
   user            User @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
 }
+
 model Vitima {
   id              Int         @id @default(autoincrement()) // ID único da vítima
   nome            String      // Nome completo da vítima
@@ -169,7 +166,7 @@ model Vitima {
   activo          Boolean     // Status da vítima (se está ativa ou não)
   profissao       String?      // Profissão da vítima
   renda_mensal    Int?         // Renda mensal da vítima
-  cep             Int?         // CEP do endereço da vítima
+  cep             String?         // CEP do endereço da vítima
   uf              String?      // Estado (UF) da vítima
   endereco        String?      // Endereço completo
   numero          String?         // Número da residência
@@ -184,8 +181,8 @@ model Vitima {
   user            User        @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
   processos       Processo[]  // Relacionamento com processos que a vítima está envolvida
   delegacia       Delegacia[]
-
 }
+
 model Processo {
   id             Int            @id @default(autoincrement())
   tipoProcessoId Int
@@ -202,4 +199,7 @@ model Processo {
   atualizado_em  DateTime       @updatedAt
   andamento      Andamento[]
   sinistro       Sinistro[]
+
+  @@index([faseProcessoId]) // Índice para otimizar consultas com base na faseProcessoId
+  @@index([tipoProcessoId]) // Índice para otimizar consultas com base no tipoProcessoId
 }

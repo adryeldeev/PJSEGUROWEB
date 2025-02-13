@@ -13,6 +13,7 @@ import SeguradoraController from '../Controllers/SeguradoraController.js'
 import { deleteDocumento, getDocumentoById, getDocumentos, updateDocumento, uploadDocumento } from '../Controllers/uploadDocumento.js';
 import VitimaController from '../Controllers/VitimaController.js';
 import ProcessoController from '../Controllers/ProcessoController.js';
+import AndamentoController from '../Controllers/AndamentoController.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -115,5 +116,15 @@ router.get('/processos', authenticate,ProcessoController.findAll);
 router.get('/processos/:id',authenticate,  ProcessoController.findById);
 router.put('/processos/:id',authenticate,  ProcessoController.updateProcesso);
 router.delete('/processos/:id', authenticate, ProcessoController.deleteProcesso);
+
+
+
+router.post('/createAndamento', authenticate, AndamentoController.createAndamento)
+router.get('/andamentos', authenticate,AndamentoController.findAll);
+router.get('/andamento/:id',authenticate,  AndamentoController.findByProcessoId);
+router.put('/updateAndamento/:id',authenticate,  AndamentoController.updateAndamento);
+router.delete('/deleteAndamento/:id', authenticate, AndamentoController.deleteAndamento);
+
+
 
 export { router}
