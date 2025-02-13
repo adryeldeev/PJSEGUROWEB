@@ -4,10 +4,10 @@ const prisma = new PrismaClient();
 
 export default {
     async createProcesso(req, res) {
-        const { nome, cor_fundo, cor_fonte, pendencia, muda_fase, activo, status } = req.body;  // Incluindo o status
+        const { nome, cor_fundo, cor_fonte, pendencia, muda_fase, activo } = req.body;  // Incluindo o status
         const userId = req.userId;
     
-        if (!nome || !cor_fundo || !cor_fonte || typeof pendencia !== "boolean" || typeof muda_fase !== "boolean" || typeof activo !== "boolean" || !status) {
+        if (!nome || !cor_fundo || !cor_fonte || typeof pendencia !== "boolean" || typeof muda_fase !== "boolean" || typeof activo !== "boolean" ) {
             return res.status(400).json({ message: "Preencha todos os campos obrigatórios corretamente." });
         }
     
@@ -28,7 +28,6 @@ export default {
                     pendencia,
                     muda_fase,
                     activo,
-                    status,  // Salvando o status fornecido
                     userId
                 }
             });

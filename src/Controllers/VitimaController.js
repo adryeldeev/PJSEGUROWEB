@@ -19,7 +19,11 @@ export default {
         if (!nome || !cpf || activo === undefined || activo === null) {
             return res.status(400).json({ message: "Preencha todos os campos obrigatórios." });
         }
-    
+        
+        if (!cpf || typeof cpf !== "string") {
+            return res.status(400).json({ message: "CPF é obrigatório e deve ser uma string válida." });
+        }
+        
         // Normalizar CPF (remover caracteres não numéricos)
         const cpfNormalized = cpf.replace(/\D/g, ''); 
     
@@ -29,7 +33,7 @@ export default {
         }
         const nomeNomarlized = nome? nome.toLowerCase() : null;
         // Normalizar CEP (remover caracteres não numéricos ou converter para número se necessário)
-        const cepNormalized = cep ? parseInt(cep.replace(/\D/g, ''), 10) : null;
+        const cepNormalized = cep ? cep.replace(/\D/g, '') : null;
       
         try {
             // Verificar se a vítima já existe
@@ -74,6 +78,7 @@ export default {
                     userId
                 }
             });
+            console.log('Vitima criada: ', vitima)
     
             return res.status(201).json({
                 error: false,
