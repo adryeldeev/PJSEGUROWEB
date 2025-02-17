@@ -14,6 +14,8 @@ import { deleteDocumento, getDocumentoById, getDocumentos, updateDocumento, uplo
 import VitimaController from '../Controllers/VitimaController.js';
 import ProcessoController from '../Controllers/ProcessoController.js';
 import AndamentoController from '../Controllers/AndamentoController.js';
+import ChecklistController from '../Controllers/ChecklistController.js';
+
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -22,28 +24,41 @@ const __dirname = path.dirname(__filename);
 // Configuração do armazenamento de arquivos
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const uploadsDir = path.join(__dirname, "../../uploads/");
-        cb(null, uploadsDir); // Diretório para salvar as imagens
+        let folder = "uploads/"; // Caminho base
+
+        if (req.body.tipo === "documento") {
+            folder += "documentos/"; // Para documentos gerais do cliente
+        } else if (req.body.tipo === "checklist") {
+            folder += "checklist/"; // Para documentos do checklist
+        } else {
+            return cb(new Error("Tipo de upload inválido"), false);
+        }
+
+        cb(null, path.join(__dirname, "../../", folder)); // Define o destino final
     },
     filename: (req, file, cb) => {
         const uniqueName = `${Date.now()}-${file.originalname}`;
-        cb(null, uniqueName); // Nome único para o arquivo
+        cb(null, uniqueName);
     },
 });
 
-// Definindo o multer com configurações de arquivo aceito
 const upload = multer({
     storage,
     fileFilter: (req, file, cb) => {
-        const allowedTypes = ["image/jpeg", "image/png", "image/jpg", "application/pdf"];
+        const allowedTypes = [
+            "image/jpeg", "image/png", "image/jpg", // Imagens
+            "application/pdf", // PDFs
+            "application/msword", // .doc
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document" // .docx
+        ];
+
         if (allowedTypes.includes(file.mimetype)) {
             cb(null, true);
         } else {
-            cb(new Error("Tipo de arquivo não suportado. Apenas JPEG, PNG, JPG e PDF são permitidos."), false);
+            cb(new Error("Tipo de arquivo não suportado. Apenas JPEG, PNG, JPG, PDF, DOC e DOCX são permitidos."), false);
         }
     },
 });
-
 const router = Router()
 
 
@@ -53,6 +68,8 @@ router.get('/documento/:id', authenticate, getDocumentoById);
 router.put('/updateDocumento/:id', authenticate, updateDocumento); 
 router.delete('/deleteDocumento/:id', authenticate, deleteDocumento); 
 
+//checklist
+router.post('/createChecklist',authenticate, upload.single('file'), ChecklistController.createChecklist ); 
 
 router.post('/createUser',UserController.createUser)
 router.post('/login', UserController.loginUser)
