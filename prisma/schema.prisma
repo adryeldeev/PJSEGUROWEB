@@ -121,7 +121,7 @@ model Checklist {
   descricao      String
   arquivoUrl     String
   obrigatorio    Boolean
-  entregue       Boolean
+  entregue       Boolean 
   userId         String  // Agora o userId está correto
   user           User     @relation(fields: [userId], references: [id])
   processoId     Int

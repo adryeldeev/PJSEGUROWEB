@@ -21,7 +21,7 @@ export const uploadDocumento = async (req, res) => {
             return res.status(400).json({ error: 'Nenhum arquivo enviado.' });
         }
 
-        const arquivoUrl = `/uploads/${req.file.filename}`;
+        const arquivoUrl = `/uploads/documentos/${req.file.filename}`;
 
         // Salvar no banco com clienteId
         const documento = await prisma.documento.create({
