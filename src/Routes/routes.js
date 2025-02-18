@@ -24,17 +24,17 @@ const __dirname = path.dirname(__filename);
 // Configuração do armazenamento de arquivos
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        let folder = "uploads/"; // Caminho base
+        let folder = "uploads/";
 
-        if (req.body.tipo === "documento") {
-            folder += "documentos/"; // Para documentos gerais do cliente
-        } else if (req.body.tipo === "checklist") {
-            folder += "checklist/"; // Para documentos do checklist
-        } else {
-            return cb(new Error("Tipo de upload inválido"), false);
+        if (req.originalUrl.includes("createChecklist")) {
+            folder += "checklist/";
+        } else if (req.originalUrl.includes("uploadDocumento")) {
+            folder += "documentos/";
+        } else if (req.originalUrl.includes("updateChecklist")) {
+            folder += "checklist/"; // Adicione esta condição para a atualização
         }
 
-        cb(null, path.join(__dirname, "../../", folder)); // Define o destino final
+        cb(null, path.join(__dirname, "../../", folder));
     },
     filename: (req, file, cb) => {
         const uniqueName = `${Date.now()}-${file.originalname}`;
@@ -68,9 +68,14 @@ router.get('/documento/:id', authenticate, getDocumentoById);
 router.put('/updateDocumento/:id', authenticate, updateDocumento); 
 router.delete('/deleteDocumento/:id', authenticate, deleteDocumento); 
 
-//checklist
-router.post('/createChecklist',authenticate, upload.single('file'), ChecklistController.createChecklist ); 
+// checklist
+router.post('/createChecklist', authenticate, upload.single('file'), ChecklistController.createChecklist); 
+router.get('/checklist', authenticate, ChecklistController.findAll); 
+router.get('/checklist/:id', authenticate, ChecklistController.findByID); 
+router.put('/updateChecklist/:id', authenticate,upload.single('file'), ChecklistController.updateChecklist); 
+router.delete('/deleteChecklist/:id', authenticate, ChecklistController.deleteChecklist); 
 
+//User
 router.post('/createUser',UserController.createUser)
 router.post('/login', UserController.loginUser)
 router.get('/user/:id',authenticate, UserController.getUserById)
