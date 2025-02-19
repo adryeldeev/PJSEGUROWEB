@@ -131,25 +131,39 @@ export default {
     async deleteProcesso(req, res) {
         const { id } = req.params;
         const userId = req.userId;
-
+    
         try {
+            // Verificar se o processo existe
             const processoExisting = await prisma.faseProcesso.findUnique({
                 where: { id: Number(id) }
             });
-
+    
+            // Se o processo não existir ou o usuário não for o dono
             if (!processoExisting || processoExisting.userId !== userId) {
                 return res.status(404).json({ message: "Processo não encontrado ou você não tem permissão." });
             }
-
+    
+            // Verificar se a fase está associada a algum processo
+            const processoAssociado = await prisma.processo.findFirst({
+                where: { faseProcessoId: processoExisting.id }
+            });
+    
+            if (processoAssociado) {
+                return res.status(400).json({ 
+                    message: "Esta fase está associada a um processo e não pode ser excluída." 
+                });
+            }
+    
+            // Excluir a fase, se não estiver associada a nenhum processo
             await prisma.faseProcesso.delete({
                 where: { id: Number(id) }
             });
-
+    
             return res.status(200).json({
                 error: false,
-                message: "Sucesso: Processo deletado com sucesso!"
+                message: "Processo deletado com sucesso!"
             });
-
+    
         } catch (error) {
             console.error(error);
             return res.status(500).json({ message: "Ocorreu um erro interno no servidor." });

@@ -76,25 +76,50 @@ export default {
         }
       },
 
-    async deleteTiposProcesso(req, res) {
-        const { id } = req.params; // Pega o id da URL
-        const userId = req.userId; // Pega o userId do usuário autenticado
-      
+      async deleteTiposProcesso(req, res) {
+        const { id } = req.params;
+        const userId = req.userId;
+    
         try {
-          const parsedId = parseInt(id, 10); // Converte o id da URL para inteiro
-          if (isNaN(parsedId)) {
-            return res.status(400).json({ error: "ID inválido" }); // Verifica se o id é um número válido
-          }
-      
-          // Deleta o tipo de processo no banco de dados com base no id e no userId
-          const deletedTipoDeProcesso = await prisma.tiposDeProcesso.delete({
-            where: { id: parsedId, userId }, // Garante que o id e o userId correspondam
-          });
-      
-          return res.status(200).json(deletedTipoDeProcesso); // Retorna a resposta com os dados deletados
+            const parsedId = parseInt(id, 10);
+            if (isNaN(parsedId)) {
+                return res.status(400).json({ error: "ID inválido" });
+            }
+    
+            // Verificar se o tipo de processo existe
+            const tipoProcessoExisting = await prisma.tiposDeProcesso.findUnique({
+                where: { id: parsedId, userId }
+            });
+    
+            if (!tipoProcessoExisting) {
+                return res.status(404).json({ message: "Tipo de processo não encontrado ou você não tem permissão." });
+            }
+    
+            // Verificar se o tipo de processo está associado a algum processo
+            const processoAssociado = await prisma.processo.findFirst({
+                where: { tipoProcessoId: tipoProcessoExisting.id }
+            });
+    
+            if (processoAssociado) {
+                return res.status(400).json({
+                    message: "Este tipo de processo está associado a um processo e não pode ser excluído."
+                });
+            }
+    
+            // Excluir o tipo de processo, se não estiver associado a nenhum processo
+            const deletedTipoDeProcesso = await prisma.tiposDeProcesso.delete({
+                where: { id: parsedId }
+            });
+    
+            return res.status(200).json({
+                error: false,
+                message: "Tipo de processo excluído com sucesso!",
+                deletedTipoDeProcesso
+            });
+    
         } catch (error) {
-          console.error(error); // Exibe o erro no console
-          return res.status(500).json({ error: "Erro ao excluir tipo de processo." }); // Retorna erro genérico
+            console.error(error);
+            return res.status(500).json({ message: "Erro ao excluir tipo de processo." });
         }
-      }
+    }
 };
