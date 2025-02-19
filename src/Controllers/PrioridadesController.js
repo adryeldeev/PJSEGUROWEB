@@ -149,23 +149,33 @@ async deletePrioridade(req, res) {
             return res.status(404).json({ message: "Prioridade não encontrada." });
         }
 
+        // Verificar se a prioridade está vinculada a algum processo
+        const processosVinculados = await prisma.processo.findMany({
+            where: { prioridadeId: Number(id) }, // A chave estrangeira 'prioridadeId' no modelo 'Processo'
+        });
+
+        if (processosVinculados.length > 0) {
+            return res.status(400).json({
+                message: "Não é possível excluir esta prioridade porque ela está vinculada a processos.",
+            });
+        }
+
         // Excluir a prioridade
-        const deletedPrioridades = await prisma.prioridades.delete({
+        const deletedPrioridade = await prisma.prioridades.delete({
             where: { id: Number(id) },
         });
 
         return res.status(200).json({
             message: "Prioridade excluída com sucesso.",
-            prioridade: deletedPrioridades,
+            prioridade: deletedPrioridade,
         });
     } catch (error) {
         console.error(error);
         return res.status(500).json({
             message: "Ocorreu um erro ao tentar excluir a prioridade.",
+            error: error.message,
         });
     }
 }
-
-
     
 }

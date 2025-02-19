@@ -3,60 +3,88 @@ const { PrismaClient } = pkg;
 const prisma = new PrismaClient();
 
 export default {
-        async createAndamento(req, res) {
-     const { observacoes, faseProcessoId, processoId, data } = req.body;
-     console.log("Data recebida no req.body:", data);
-    const userId = req.userId;
-
-    if (!faseProcessoId || !processoId) {
-        return res.status(400).json({ message: "Fase e Processo são obrigatórios." });
-    }
-
-    try {
-        // Verificar se a fase existe
-        const fase = await prisma.faseProcesso.findUnique({ where: { id: faseProcessoId } });
-        if (!fase) {
-            return res.status(404).json({ message: "Fase não encontrada." });
+    async createAndamento(req, res) {
+        const { observacoes, faseProcessoId, processoId, data } = req.body;
+        const userId = req.userId;
+    
+        if (!faseProcessoId || !processoId) {
+            return res.status(400).json({ message: "Fase e Processo são obrigatórios." });
         }
-
-        const parseData = (data) => {
-            if (!data) return new Date(); // Se não houver data, pega a atual
-        
-            const parsedDate = Date.parse(data);
-            if (!isNaN(parsedDate)) {
-                return new Date(parsedDate); // Retorna a data válida
+    
+        try {
+            // Verificar se a fase existe
+            const fase = await prisma.faseProcesso.findUnique({ where: { id: faseProcessoId } });
+            if (!fase) {
+                return res.status(404).json({ message: "Fase não encontrada." });
             }
-        
-            console.warn("Data inválida recebida:", data);
-            return new Date(); // Se for inválida, usa a atual para evitar erro
-        };
-        // Criar o andamento
-        const andamento = await prisma.andamento.create({
-            data: {
-                observacoes,
-                faseProcessoId,
-                processoId,
-                userId,
-                data: parseData(data),
-            },
-        });
-
-        // Atualizar a fase do processo com a última fase registrada
-        await prisma.processo.update({
-            where: { id: processoId },
-            data: { faseProcessoId },
-        });
-
-        return res.status(201).json({
-            error: false,
-            message: "Andamento criado e fase do processo atualizada!",
-            andamento,
-        });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: "Erro interno no servidor." });
-    }
-},
+    
+            const parseData = (data) => {
+                if (!data) return new Date(); // Se não houver data, pega a atual
+            
+                const parsedDate = Date.parse(data);
+                if (!isNaN(parsedDate)) {
+                    return new Date(parsedDate); // Retorna a data válida
+                }
+            
+                console.warn("Data inválida recebida:", data);
+                return new Date(); // Se for inválida, usa a atual para evitar erro
+            };
+    
+            // Criar o novo andamento
+            const andamento = await prisma.andamento.create({
+                data: {
+                    observacoes,
+                    faseProcessoId,
+                    processoId,
+                    userId,
+                    data: parseData(data),
+                },
+            });
+    
+            // Atualizar o processo com o novo andamento
+            await prisma.processo.update({
+                where: { id: processoId },
+                data: { faseProcessoId },
+            });
+    
+            // Encontrar o último andamento (recém-criado) e excluir o andamento anterior
+            const andamentos = await prisma.andamento.findMany({
+                where: { processoId: processoId },
+                orderBy: { data: "desc" },  // Ordena para garantir que o último é o mais recente
+            });
+    
+            if (andamentos.length > 1) {
+                const ultimoAndamento = andamentos[0];  // O recém-criado
+                const anteriorAndamento = andamentos[1];  // O anterior ao último
+    
+                // Excluir o andamento mais recente (último)
+                await prisma.andamento.delete({
+                    where: { id: ultimoAndamento.id },
+                });
+    
+                // Atualizar o processo para apontar para a fase do andamento anterior
+                await prisma.processo.update({
+                    where: { id: processoId },
+                    data: { faseProcessoId: anteriorAndamento.faseProcessoId },
+                });
+    
+                return res.status(201).json({
+                    error: false,
+                    message: "Novo andamento criado e anterior restaurado como atual.",
+                });
+            }
+    
+            return res.status(201).json({
+                error: false,
+                message: "Andamento criado com sucesso!",
+                andamento,
+            });
+    
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ message: "Erro interno no servidor." });
+        }
+    },
     
         // READ - Buscar todos os andamentos
         async findAll(req, res) {
@@ -86,42 +114,58 @@ export default {
         async updateAndamento(req, res) {
             try {
                 const { id } = req.params;  // ID do andamento a ser atualizado
-                const { faseProcessoId } = req.body;  // ID da nova fase do processo
-                
-                // Atualizar o andamento (presumindo que 'id' é o identificador do andamento)
+                const { faseProcessoId, ...dadosAtualizados } = req.body;  // ID da nova fase do processo e outros dados
+        
+                // Verificar se o andamento existe
+                const andamentoExistente = await prisma.andamento.findUnique({
+                    where: { id: Number(id) }
+                });
+        
+                if (!andamentoExistente) {
+                    return res.status(404).json({ message: "Andamento não encontrado." });
+                }
+        
+                // Verificar se a nova fase do processo existe
+                if (faseProcessoId) {
+                    const faseProcesso = await prisma.faseProcesso.findUnique({
+                        where: { id: faseProcessoId }
+                    });
+        
+                    if (!faseProcesso) {
+                        return res.status(404).json({ message: "Fase do processo não encontrada." });
+                    }
+                }
+        
+                // Atualizar o andamento
                 const andamento = await prisma.andamento.update({
                     where: { id: Number(id) },
-                    data: req.body
+                    data: { faseProcessoId, ...dadosAtualizados }
                 });
-          
-                // Buscar a fase com o ID fornecido
-                const faseProcesso = await prisma.faseProcesso.findUnique({
-                    where: { id: faseProcessoId }
-                });
-          
-                if (!faseProcesso) {
-                    return res.status(404).json({ message: "Fase não encontrada." });
-                }
-          
+        
                 // Buscar o processo associado ao andamento
                 const processo = await prisma.processo.findUnique({
                     where: { id: andamento.processoId }
                 });
-    
+        
                 if (!processo) {
                     return res.status(404).json({ message: "Processo não encontrado." });
                 }
-          
-                // Atualizar o nome da fase no processo (é isso que você deseja fazer)
+        
+                // Atualizar o nome da fase no processo
+                const faseProcesso = await prisma.faseProcesso.findUnique({
+                    where: { id: andamento.faseProcessoId }
+                });
+        
                 const processoAtualizado = await prisma.processo.update({
                     where: { id: processo.id },
-                    data: { faseNome: faseProcesso.nome }  // Atualiza o nome da fase
+                    data: { faseNome: faseProcesso ? faseProcesso.nome : null }  // Se a fase existir, atualiza o nome
                 });
-    
-                res.json({ andamento, processoAtualizado });  // Retorna o andamento e o processo atualizado
+        
+                return res.json({ andamento, processoAtualizado });  // Retorna os dados atualizados
+        
             } catch (error) {
                 console.error(error);
-                res.status(500).send("Erro ao atualizar andamento");
+                return res.status(500).json({ message: "Erro ao atualizar andamento." });
             }
         },
     
@@ -129,25 +173,64 @@ export default {
         async deleteAndamento(req, res) {
             const { id } = req.params;
             const userId = req.userId;
-    
+        
             try {
-                // Verificar se o andamento existe
+                // Buscar o andamento a ser deletado
                 const andamento = await prisma.andamento.findUnique({
                     where: { id: Number(id) },
                 });
-    
+        
                 if (!andamento || andamento.userId !== userId) {
                     return res.status(404).json({ message: "Andamento não encontrado ou você não tem permissão." });
                 }
-    
+        
                 // Excluir o andamento
                 await prisma.andamento.delete({
                     where: { id: Number(id) },
                 });
-    
+        
+                // Verificar se ainda existem outros andamentos vinculados à fase
+                const aindaTemAndamentos = await prisma.andamento.findMany({
+                    where: { faseProcessoId: andamento.faseProcessoId }
+                });
+        
+                if (aindaTemAndamentos.length === 0) {
+                    // Se não há mais andamentos para essa fase, você pode decidir o que fazer:
+                    // Excluir a fase (caso não tenha mais nada vinculado)
+                    await prisma.faseProcesso.delete({
+                        where: { id: andamento.faseProcessoId }
+                    });
+        
+                    // Atualizar o processo para usar uma fase padrão ou para a fase de outro andamento
+                    const processo = await prisma.processo.findUnique({
+                        where: { id: andamento.processoId },
+                    });
+        
+                    if (processo) {
+                        // Definir uma fase padrão (caso a fase seja deletada)
+                        const fasePadrao = await prisma.faseProcesso.findFirst({
+                            where: { nome: 'Início' }, // Ou qualquer nome de fase padrão
+                        });
+        
+                        if (fasePadrao) {
+                            await prisma.processo.update({
+                                where: { id: processo.id },
+                                data: { faseProcessoId: fasePadrao.id },
+                            });
+                        }
+                    }
+                } else {
+                    // Caso existam outros andamentos, atualizar o processo para a última fase registrada
+                    const ultimoAndamento = aindaTemAndamentos.sort((a, b) => b.data - a.data)[0]; // Ordena e pega o mais recente
+                    await prisma.processo.update({
+                        where: { id: andamento.processoId },
+                        data: { faseProcessoId: ultimoAndamento.faseProcessoId },
+                    });
+                }
+        
                 return res.status(200).json({
                     error: false,
-                    message: "Andamento deletado com sucesso!",
+                    message: "Andamento deletado com sucesso e fase atualizada.",
                 });
             } catch (error) {
                 console.error(error);

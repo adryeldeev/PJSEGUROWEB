@@ -186,26 +186,43 @@ export default {
     },
     
     // Deletar vítima
-    async deleteVitima(req, res) {
-        const { id } = req.params;
+ async deleteVitima(req, res) {
+    const id = Number(req.params.id);
 
-        try {
-            const vitimaExists = await prisma.vitima.findUnique({
-                where: { id: Number(id) }
-            });
+    if (isNaN(id)) {
+        return res.status(400).json({ message: "ID inválido." });
+    }
 
-            if (!vitimaExists) {
-                return res.status(404).json({ message: "Vítima não encontrada." });
-            }
+    try {
+        // Verificar se a vítima existe e se está vinculada a algum processo
+        const vitimaExistente = await prisma.vitima.findUnique({
+            where: { id },
+            include: { processos: true } // Verifica se há processos vinculados
+        });
 
-            await prisma.vitima.delete({ where: { id: Number(id) } });
-
-            return res.status(200).json({ message: "Vítima deletada com sucesso!" });
-        } catch (error) {
-            console.error(error);
-            return res.status(500).json({ message: "Erro ao deletar a vítima." });
+        if (!vitimaExistente) {
+            return res.status(404).json({ message: "Vítima não encontrada." });
         }
-    },
+
+        // Verificar se a vítima está vinculada a algum processo
+        if (vitimaExistente.processos.length > 0) {
+            return res.status(200).json({
+                message: "Essa vítima está vinculada a um processo, deseja excluir?"
+            });
+        }
+
+        // Se não houver processos, realiza a exclusão
+        await prisma.vitima.delete({
+            where: { id }
+        });
+
+        return res.status(200).json({ message: "Vítima excluída com sucesso!" });
+
+    } catch (error) {
+        console.error("Erro ao deletar vítima:", error);
+        return res.status(500).json({ message: "Erro ao excluir vítima. Verifique dependências." });
+    }
+},
 
     async findVitimaByCpf(req, res) {
         const { cpf } = req.params;
