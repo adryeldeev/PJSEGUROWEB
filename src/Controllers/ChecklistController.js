@@ -83,17 +83,29 @@ export default {
     // Buscar checklist por ID
     async findByID(req, res) {
         try {
-            const { id } = req.params;
-            const checklist = await prisma.checklist.findUnique({ where: { id: parseInt(id, 10) } });
-
-            if (!checklist) {
-                return res.status(404).json({ message: "Checklist não encontrado." });
+            const { processoId } = req.params; // Captura o ID do processo da URL
+    
+            // Verifica se processoId foi passado
+            if (!processoId) {
+                return res.status(400).json({ error: "O ID do processo é obrigatório." });
             }
-
-            res.status(200).json(checklist); // Retornar diretamente o checklist
+    
+            const processoIdNumber = parseInt(processoId, 10);
+    
+            // Verifica se o processoId é um número válido
+            if (isNaN(processoIdNumber)) {
+                return res.status(400).json({ error: "O ID do processo deve ser um número válido." });
+            }
+    
+            // Busca os checklists associados ao processo
+            const checklists = await prisma.checklist.findMany({
+                where: { processoId: processoIdNumber }
+            });
+    
+            res.status(200).json(checklists);
         } catch (error) {
             console.error(error);
-            res.status(500).json({ error: "Erro ao buscar checklist.", detalhes: error.message });
+            res.status(500).json({ error: "Erro ao buscar checklists do processo.", detalhes: error.message });
         }
     },
 
@@ -102,22 +114,26 @@ export default {
         try {
             const { id } = req.params;
             const { descricao, obrigatorio, entregue } = req.body;
-
-            const obrigatorioBoolean = stringToBoolean(obrigatorio);
-            const entregueBoolean = stringToBoolean(entregue);
-
-            // Buscar o arquivoUrl existente
+    
+            // Buscar o checklist para verificar se ele existe
             const checklistExistente = await prisma.checklist.findUnique({
                 where: { id: parseInt(id, 10) },
             });
-
-            let arquivoUrl = checklistExistente.arquivoUrl; // Usar o arquivoUrl existente
-
+    
+            if (!checklistExistente) {
+                return res.status(404).json({ message: "Checklist não encontrado." });
+            }
+    
+            const obrigatorioBoolean = stringToBoolean(obrigatorio);
+            const entregueBoolean = stringToBoolean(entregue);
+    
+            let arquivoUrl = checklistExistente.arquivoUrl; // Manter o arquivo existente
+    
             // Se um novo arquivo for enviado, atualize o arquivoUrl
             if (req.file) {
                 arquivoUrl = `/uploads/checklist/${req.file.filename}`;
             }
-
+    
             const updatedChecklist = await prisma.checklist.update({
                 where: { id: parseInt(id, 10) },
                 data: {
@@ -127,8 +143,8 @@ export default {
                     arquivoUrl,
                 },
             });
-
-            res.status(200).json(updatedChecklist); // Retornar diretamente o updatedChecklist
+    
+            res.status(200).json(updatedChecklist);
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: "Erro ao atualizar checklist.", detalhes: error.message });
@@ -139,13 +155,15 @@ export default {
     async deleteChecklist(req, res) {
         try {
             const { id } = req.params;
-
+    
+            // Buscar o checklist antes de deletar
             const checklist = await prisma.checklist.findUnique({ where: { id: parseInt(id, 10) } });
+    
             if (!checklist) {
                 return res.status(404).json({ message: "Checklist não encontrado." });
             }
-
-            // Remover arquivo do sistema de arquivos
+    
+            // Remover o arquivo do sistema de arquivos se existir
             if (checklist.arquivoUrl) {
                 const filePath = path.join(__dirname, "../../", checklist.arquivoUrl);
                 fs.unlink(filePath, (err) => {
@@ -154,9 +172,10 @@ export default {
                     }
                 });
             }
-
+    
+            // Deletar o checklist do banco de dados
             await prisma.checklist.delete({ where: { id: parseInt(id, 10) } });
-
+    
             res.status(200).json({ message: "Checklist excluído com sucesso." });
         } catch (error) {
             console.error(error);

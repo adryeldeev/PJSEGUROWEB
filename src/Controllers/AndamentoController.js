@@ -189,39 +189,16 @@ export default {
                     where: { id: Number(id) },
                 });
         
-                // Verificar se ainda existem outros andamentos vinculados à fase
-                const aindaTemAndamentos = await prisma.andamento.findMany({
-                    where: { faseProcessoId: andamento.faseProcessoId }
+                // Buscar outros andamentos do mesmo processo, ordenados por data (mais recentes primeiro)
+                const andamentosRestantes = await prisma.andamento.findMany({
+                    where: { processoId: andamento.processoId },
+                    orderBy: { data: 'desc' } // Pegamos os mais recentes primeiro
                 });
         
-                if (aindaTemAndamentos.length === 0) {
-                    // Se não há mais andamentos para essa fase, você pode decidir o que fazer:
-                    // Excluir a fase (caso não tenha mais nada vinculado)
-                    await prisma.faseProcesso.delete({
-                        where: { id: andamento.faseProcessoId }
-                    });
+                if (andamentosRestantes.length > 0) {
+                    // Se houver um andamento anterior, ele se torna o atual
+                    const ultimoAndamento = andamentosRestantes[0]; // O primeiro da lista ordenada é o mais recente
         
-                    // Atualizar o processo para usar uma fase padrão ou para a fase de outro andamento
-                    const processo = await prisma.processo.findUnique({
-                        where: { id: andamento.processoId },
-                    });
-        
-                    if (processo) {
-                        // Definir uma fase padrão (caso a fase seja deletada)
-                        const fasePadrao = await prisma.faseProcesso.findFirst({
-                            where: { nome: 'Início' }, // Ou qualquer nome de fase padrão
-                        });
-        
-                        if (fasePadrao) {
-                            await prisma.processo.update({
-                                where: { id: processo.id },
-                                data: { faseProcessoId: fasePadrao.id },
-                            });
-                        }
-                    }
-                } else {
-                    // Caso existam outros andamentos, atualizar o processo para a última fase registrada
-                    const ultimoAndamento = aindaTemAndamentos.sort((a, b) => b.data - a.data)[0]; // Ordena e pega o mais recente
                     await prisma.processo.update({
                         where: { id: andamento.processoId },
                         data: { faseProcessoId: ultimoAndamento.faseProcessoId },
@@ -230,8 +207,9 @@ export default {
         
                 return res.status(200).json({
                     error: false,
-                    message: "Andamento deletado com sucesso e fase atualizada.",
+                    message: "Andamento deletado com sucesso e fase do processo atualizada se necessário.",
                 });
+        
             } catch (error) {
                 console.error(error);
                 return res.status(500).json({ message: "Erro interno no servidor." });
