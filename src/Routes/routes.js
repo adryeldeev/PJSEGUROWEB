@@ -82,9 +82,9 @@ router.get('/user/:id',authenticate, UserController.getUserById)
 
 //Processo
 router.post('/createProcesso',authenticate,FaseProcessoController.createProcesso)
-router.get('/processos',authenticate,FaseProcessoController.findAll)
-router.put('/updateProcesso/:id',authenticate,FaseProcessoController.updateProcesso)
-router.delete('/deleteProcesso/:id',authenticate,FaseProcessoController.deleteProcesso)
+router.get('/fases-processos',authenticate,FaseProcessoController.findAll)
+router.put('/updateFasesProcesso/:id',authenticate,FaseProcessoController.updateProcesso)
+router.delete('/deleteFasesProcesso/:id',authenticate,FaseProcessoController.deleteProcesso)
 
 //TipoDeProcesso
 router.post('/createTipoProcesso',authenticate,TiposDeProcesso.createTiposProcesso)
