@@ -136,8 +136,8 @@ router.get('/findVitimaByCpf/:cpf', authenticate, VitimaController.findVitimaByC
 router.post('/createProcessoV', authenticate, ProcessoController.createProcesso)
 router.get('/processos', authenticate,ProcessoController.findAll);
 router.get('/processos/:id',authenticate,  ProcessoController.findById);
-router.put('/processos/:id',authenticate,  ProcessoController.updateProcesso);
-router.delete('/processos/:id', authenticate, ProcessoController.deleteProcesso);
+router.put('/updateProcessos/:id',authenticate,  ProcessoController.updateProcesso);
+router.delete('/deleteProcessos/:id', authenticate, ProcessoController.deleteProcesso);
 
 
 
