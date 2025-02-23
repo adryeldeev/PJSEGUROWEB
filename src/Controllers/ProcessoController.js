@@ -91,29 +91,11 @@ export default {
         try {
             const processos = await prisma.processo.findMany({
                 include: {
-                    vitima: true, // Inclui informações da vítima
-                    tipoProcesso: true,
-                    faseProcesso: true,
-                    prioridade: true,
-                    user: true,
-                },
-            });
-
-            return res.status(200).json(processos);
-        } catch (error) {
-            console.error(error);
-            return res.status(500).json({ message: "Erro ao buscar os processos.", error });
-        }
-    },
-
-    // Buscar um processo pelo ID
-    async findById(req, res) {
-        try {
-            const { id } = req.params;
-
-            const processo = await prisma.processo.findUnique({
-                where: { id: parseInt(id) },
-                include: {
+                    sinistro: {
+                        select: {
+                            numero: true // 🔹 Apenas o número do sinistro
+                        }
+                    },
                     vitima: true,
                     tipoProcesso: true,
                     faseProcesso: true,
@@ -121,11 +103,39 @@ export default {
                     user: true,
                 },
             });
-
+    
+            return res.status(200).json(processos);
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ message: "Erro ao buscar os processos.", error });
+        }
+    },
+    
+    // Buscar um processo pelo ID
+    async findById(req, res) {
+        try {
+            const { id } = req.params;
+    
+            const processo = await prisma.processo.findUnique({
+                where: { id: parseInt(id) },
+                include: {
+                    sinistro: {
+                        select: {
+                            numero: true // 🔹 Apenas o número do sinistro
+                        }
+                    },
+                    vitima: true,
+                    tipoProcesso: true,
+                    faseProcesso: true,
+                    prioridade: true,
+                    user: true,
+                },
+            });
+    
             if (!processo) {
                 return res.status(404).json({ message: "Processo não encontrado." });
             }
-
+    
             return res.status(200).json(processo);
         } catch (error) {
             console.error(error);
