@@ -83,7 +83,7 @@ export default {
     // Buscar checklist por ID
     async findByID(req, res) {
         try {
-            const { processoId } = req.params; // Captura o ID do processo da URL
+            const { id: processoId } = req.params // Captura o ID do processo da URL
             console.log("processoId no backend:", processoId);
             // Verifica se processoId foi passado
             if (!processoId) {

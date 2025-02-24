@@ -125,10 +125,11 @@ export default {
     // Buscar um processo pelo ID
     async findById(req, res) {
         try {
-            const { id } = req.params;
+            const { id: processoId } = req.params;
+            console.log('processoId : ', processoId)
     
             const processo = await prisma.processo.findUnique({
-                where: { id: parseInt(id) },
+                where: { id: parseInt(processoId) },
                 include: {
                     sinistro: {
                         select: {
@@ -142,6 +143,7 @@ export default {
                     user: true,
                 },
             });
+            console.log('dados processo', processo)
     
             if (!processo) {
                 return res.status(404).json({ message: "Processo não encontrado." });
