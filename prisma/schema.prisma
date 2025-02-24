@@ -141,7 +141,7 @@ model TipoDeVeiculo {
   modelo    String?
   userId    String
   user      User @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
-  processo   Processo[]
+
  sinistro   Sinistro[]
 
 }
@@ -204,8 +204,6 @@ model Processo {
   tipoProcesso   TiposDeProcesso @relation(fields: [tipoProcessoId], references: [id])
   faseProcessoId Int
   faseProcesso   FaseProcesso   @relation(fields: [faseProcessoId], references: [id])
-  tipoDeVeiculoId Int
-  tipoDeVeiculo   TipoDeVeiculo @relation(fields: [tipoDeVeiculoId], references: [id])
   vitimaId       Int
   vitima         Vitima         @relation(fields: [vitimaId], references: [id])
   userId         String

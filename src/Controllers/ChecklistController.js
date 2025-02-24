@@ -84,7 +84,7 @@ export default {
     async findByID(req, res) {
         try {
             const { processoId } = req.params; // Captura o ID do processo da URL
-    
+            console.log("processoId no backend:", processoId);
             // Verifica se processoId foi passado
             if (!processoId) {
                 return res.status(400).json({ error: "O ID do processo é obrigatório." });
