@@ -15,6 +15,7 @@ export default {
     
             const userId = req.userId;
            
+
             if (!cpf || typeof cpf !== 'string') {
                 return res.status(400).json({ message: "CPF é obrigatório e deve ser uma string válida." });
             }
@@ -29,7 +30,17 @@ export default {
             let vitima = await prisma.vitima.findUnique({
                 where: { cpf: cpfNormalized }
             });
-    
+            const tipoProcesso = await prisma.tiposDeProcesso.findUnique({
+                where: { id: tipoProcessoId },  // Verifique se o tipo de processo com id 1 existe
+              });
+
+              const faseProcesso = await prisma.faseProcesso.findUnique({
+                where:{id:faseProcessoId}
+              })
+              const prioridade = await prisma.prioridades.findUnique({
+                where: {id:prioridadeId}
+              })
+
             // 🔹 Se a vítima não existir, criamos uma nova
             if (!vitima) {
                 vitima = await prisma.vitima.create({
@@ -65,11 +76,11 @@ export default {
             // 🔹 Criar o processo com o ID da vítima encontrada/criada
             const novoProcesso = await prisma.processo.create({
                 data: {
-                    tipoProcessoId: parseInt(tipoProcessoId,10),
-                    faseProcessoId: parseInt(faseProcessoId,10),
-                    vitimaId: vitima.id, // Usa o ID da vítima encontrada ou recém-criada
-                    prioridadeId: parseInt(prioridadeId,10),
-                    userId,
+                    tipoProcesso: { connect: { id: parseInt(tipoProcessoId, 10) } },  // Usando connect para associar o tipo de processo
+                    faseProcesso: { connect: { id: parseInt(faseProcessoId, 10) } },  // Usando connect para associar a fase de processo
+                    vitima: { connect: { id: vitima.id } },  // Conectando a vítima à criação do processo
+                    prioridade: { connect: { id: parseInt(prioridadeId, 10) } },  // Usando connect para associar a prioridade
+                    user: { connect: { id: userId } },  // Conectando o usuário com o ID fornecido
                 },
             });
         
