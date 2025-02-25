@@ -15,6 +15,8 @@ import VitimaController from '../Controllers/VitimaController.js';
 import ProcessoController from '../Controllers/ProcessoController.js';
 import AndamentoController from '../Controllers/AndamentoController.js';
 import ChecklistController from '../Controllers/ChecklistController.js';
+import DelegaciaController from '../Controllers/DelegaciaController.js';
+import SinistroController from '../Controllers/SinistroController.js';
 
 
 
@@ -147,6 +149,14 @@ router.get('/andamento/:id',authenticate,  AndamentoController.findByProcessoId)
 router.put('/updateAndamento/:id',authenticate,  AndamentoController.updateAndamento);
 router.delete('/deleteAndamento/:id', authenticate, AndamentoController.deleteAndamento);
 
+router.post('/createDelegacia', authenticate, DelegaciaController.createDelegacia)
+router.get('/delegacia', authenticate, DelegaciaController.getAllDelegacias);
+router.get('/delegacia/:id',authenticate,  DelegaciaController.getDelegaciaById);
+router.put('/updateDelegacia/:id',authenticate,  DelegaciaController.updateDelegacia);
+router.delete('/deleteDelegacia/:id', authenticate, DelegaciaController.deleteDelegacia);
 
+
+
+router.put('/updateSinistro/:processoId',authenticate,  SinistroController.updateOrCreateSinistro);
 
 export { router}

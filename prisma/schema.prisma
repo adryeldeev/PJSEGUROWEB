@@ -146,7 +146,7 @@ model TipoDeVeiculo {
 
 }
 model Sinistro {
-  id              Int            @id @default(autoincrement())
+  id              Int             @id @default(autoincrement())
   numero          String?         @unique
   dataSinistro    DateTime?       @default(now())
   dataAbertura    DateTime?       @default(now())
@@ -154,8 +154,12 @@ model Sinistro {
   user            User @relation(fields: [userId], references: [id])
   processoId      Int
   processo        Processo       @relation(fields: [processoId], references: [id])
-  tipoDeVeiculoId Int
-  tipoDeVeiculo   TipoDeVeiculo  @relation(fields: [tipoDeVeiculoId], references: [id]) // Relacionamento correto
+  
+  tipoDeVeiculoId Int?            // Permitir que seja nulo
+  tipoDeVeiculo   TipoDeVeiculo?  @relation(fields: [tipoDeVeiculoId], references: [id])
+
+  delegaciaId Int?                // Permitir que seja nulo
+  delegacia   Delegacia?          @relation(fields: [delegaciaId], references: [id])
 }
 
 model Delegacia {
@@ -167,7 +171,7 @@ model Delegacia {
   numeroBo        String?
   userId          String
   user            User @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
-  
+    sinistro  Sinistro[]
 }
 
 model Vitima {

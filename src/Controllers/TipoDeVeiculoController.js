@@ -2,145 +2,138 @@ import pkg from '@prisma/client';
 const { PrismaClient } = pkg;
 const prisma = new PrismaClient();
 
-
 export default {
-    async createTipoDeVeiculo(req,res){
-        const {nome, placa, marca, modelo } = req.body;
+    async createTipoDeVeiculo(req, res) {
+        const { nome, placa, marca, modelo } = req.body;
         const userId = req.userId;
-        
+
         if (!nome || !placa || !marca || !modelo) {
             return res.status(400).json({ message: "Preencha todos os campos obrigatórios." });
         }
 
         try {
-            const tipoDeVeiculoExisting = await prisma.tipoDeVeiculo.findFirst({
-                where: { placa, userId }
-            })
-            
-            if (tipoDeVeiculoExisting) {
-                return res.status(400).json({ message: "Tipo de veículo já cadastrado." });
-            }
-            
-            const tipoDeVeiculo = await prisma.tipoDeVeiculo.create({
-                data: {nome, placa, marca, modelo, userId }
+            // Verifica se já existe um tipo de veículo com o mesmo nome
+            let tipoDeVeiculo = await prisma.tipoDeVeiculo.findFirst({
+                where: { nome }
             });
-            
+
+            if (tipoDeVeiculo) {
+                // Se já existe, apenas retorna os dados
+                return res.status(200).json({
+                    error: false,
+                    message: "Tipo de veículo já cadastrado.",
+                    tipoDeVeiculo
+                });
+            }
+
+            // Caso contrário, cria um novo registro
+            tipoDeVeiculo = await prisma.tipoDeVeiculo.create({
+                data: { nome, placa, marca, modelo, userId }
+            });
+
             return res.status(201).json({
                 error: false,
                 message: "Tipo de veículo cadastrado com sucesso.",
                 tipoDeVeiculo
             });
-            
+
         } catch (error) {
             console.error(error);
-            res.status(500).json({ message: "Ocorreu um erro ao tentar gravar o tipo de veículo." });
-            
+            res.status(500).json({ message: "Erro ao tentar cadastrar o tipo de veículo." });
         }
     },
-    
+
     async findAllTipoVeiculos(req, res) {
-        const userId = req.userId;
         try {
-            const tipoVeiculos = await prisma.tipoDeVeiculo.findMany({
-                where: { userId }
-            });
-            
-            return res.json({
-                error: false,
-                tipoVeiculos
-            });
-            
+            const tipoVeiculos = await prisma.tipoDeVeiculo.findMany();
+            return res.status(200).json({ error: false, tipoVeiculos });
         } catch (error) {
-            return res.status(500).json({
-                message:'Erro ao buscar o TipoDeVeiculo'
-            })
+            console.error("Erro ao buscar tipos de veículos:", error);
+            res.status(500).json({ message: "Erro ao buscar os tipos de veículos." });
         }
-    
     },
-    
+
     async findTipoDeVeiculoById(req, res) {
         const { id } = req.params;
-        
+
         try {
-            const tipoDeVeiculo = await prisma.tipoDeVeiculo.findFirst({
-                where: { id: Number(id),userId: req.userId }
+            const tipoDeVeiculo = await prisma.tipoDeVeiculo.findUnique({
+                where: { id: Number(id) }
             });
-            
+
             if (!tipoDeVeiculo) {
                 return res.status(404).json({ message: "Tipo de veículo não encontrado." });
             }
-            
-            return res.status(200).json({
-                error: false,
-                message: "Tipo de veículo encontrado",
-                tipoDeVeiculo
-            });
-            
+
+            return res.status(200).json({ error: false, tipoDeVeiculo });
+
         } catch (error) {
             console.error(error);
-            res.status(500).json({ message: "Ocorreu um erro ao tentar buscar o tipo de veículo." });
+            res.status(500).json({ message: "Erro ao buscar o tipo de veículo." });
         }
-
     },
-    
+
     async updateTipoDeVeiculo(req, res) {
         const { id } = req.params;
-        const { nome,placa, marca, modelo } = req.body;
-        
-        if (nome === undefined || placa === undefined ||marca === undefined ||modelo === undefined) {
-            return res.status(400).json({ message: "Preencha todos os campos obrigatórios." });
-        }
+        const { nome, placa, marca, modelo } = req.body;
+
         try {
-            const tipoDeVeiculoExisting = await prisma.tipoDeVeiculo.findFirst({
+            const tipoDeVeiculoExistente = await prisma.tipoDeVeiculo.findUnique({
                 where: { id: Number(id) }
             });
-            
-            if (!tipoDeVeiculoExisting) {
+
+            if (!tipoDeVeiculoExistente) {
                 return res.status(404).json({ message: "Tipo de veículo não encontrado." });
             }
-            
-            const tipoDeVeiculo = await prisma.tipoDeVeiculo.update({
+
+            // Criando objeto de atualização dinâmico
+            const dataToUpdate = {};
+            if (nome !== undefined) dataToUpdate.nome = nome;
+            if (placa !== undefined) dataToUpdate.placa = placa;
+            if (marca !== undefined) dataToUpdate.marca = marca;
+            if (modelo !== undefined) dataToUpdate.modelo = modelo;
+
+            const tipoDeVeiculoAtualizado = await prisma.tipoDeVeiculo.update({
                 where: { id: Number(id) },
-                data: { placa, marca, modelo }
+                data: dataToUpdate
             });
-            
+
             return res.status(200).json({
                 error: false,
                 message: "Tipo de veículo atualizado com sucesso.",
-                tipoDeVeiculo
+                tipoDeVeiculo: tipoDeVeiculoAtualizado
             });
-            
+
         } catch (error) {
             console.error(error);
-            res.status(500).json({ message: "Ocorreu um erro ao tentar atualizar o tipo de veículo." });
-            
+            res.status(500).json({ message: "Erro ao atualizar o tipo de veículo." });
         }
     },
-    
+
     async deleteTipoDeVeiculo(req, res) {
         const { id } = req.params;
-        
+
         try {
-            const tipoDeVeiculoExisting = await prisma.tipoDeVeiculo.findFirst({
+            const tipoDeVeiculoExistente = await prisma.tipoDeVeiculo.findUnique({
                 where: { id: Number(id) }
             });
-            
-            if (!tipoDeVeiculoExisting) {
+
+            if (!tipoDeVeiculoExistente) {
                 return res.status(404).json({ message: "Tipo de veículo não encontrado." });
             }
-            
+
             await prisma.tipoDeVeiculo.delete({
                 where: { id: Number(id) }
             });
-            
+
             return res.status(200).json({
                 error: false,
                 message: "Tipo de veículo excluído com sucesso."
             });
-            
+
         } catch (error) {
             console.error(error);
-            res.status(500).json({ message: "Ocorreu um erro ao tentar excluir o tipo de veículo." });
+            res.status(500).json({ message: "Erro ao excluir o tipo de veículo." });
         }
     }
-}
+};

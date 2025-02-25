@@ -6,9 +6,11 @@ export default {
     // Criar uma delegacia
     async createDelegacia(req, res) {
         try {
-            const { delegacia, uf, cidade, dataBo, numeroBo, processoId } = req.body;
+            const { delegacia, uf, cidade, dataBo, numeroBo, sinistroId } = req.body;
             const userId = req.userId;
-            if (!delegacia || !uf || !cidade || !numeroBo || !processoId) {
+
+            // Verifica se os campos obrigatórios foram preenchidos
+            if (!delegacia || !uf || !cidade || !numeroBo || !sinistroId) {
                 return res.status(400).json({ message: "Preencha todos os campos obrigatórios." });
             }
 
@@ -17,9 +19,9 @@ export default {
                     delegacia,
                     uf,
                     cidade,
-                    dataBo: dataBo ? new Date(dataBo) : undefined,
+                    dataBo: dataBo ? new Date(dataBo) : null,
                     numeroBo,
-                    processoId,
+                    sinistroId: parseInt(sinistroId),
                     userId
                 }
             });
@@ -51,7 +53,7 @@ export default {
     // Buscar uma delegacia por ID
     async getDelegaciaById(req, res) {
         try {
-            const { id } = req.params;
+            const id = parseInt(req.params.id);
 
             const delegacia = await prisma.delegacia.findUnique({
                 where: { id }
@@ -72,7 +74,7 @@ export default {
     // Atualizar uma delegacia
     async updateDelegacia(req, res) {
         try {
-            const { id } = req.params;
+            const id = parseInt(req.params.id);
             const { delegacia, uf, cidade, dataBo, numeroBo } = req.body;
 
             // Verifica se a delegacia existe
@@ -87,7 +89,7 @@ export default {
             if (delegacia !== undefined) dataToUpdate.delegacia = delegacia;
             if (uf !== undefined) dataToUpdate.uf = uf;
             if (cidade !== undefined) dataToUpdate.cidade = cidade;
-            if (dataBo !== undefined) dataToUpdate.dataBo = new Date(dataBo);
+            if (dataBo !== undefined) dataToUpdate.dataBo = dataBo ? new Date(dataBo) : null;
             if (numeroBo !== undefined) dataToUpdate.numeroBo = numeroBo;
 
             // Se nenhum dado foi enviado, retorna erro
@@ -116,7 +118,7 @@ export default {
     // Excluir uma delegacia
     async deleteDelegacia(req, res) {
         try {
-            const { id } = req.params;
+            const id = parseInt(req.params.id);
 
             // Verifica se a delegacia existe
             const delegaciaExistente = await prisma.delegacia.findUnique({ where: { id } });
@@ -125,13 +127,15 @@ export default {
                 return res.status(404).json({ message: "Delegacia não encontrada." });
             }
 
-            const processosVinculados = await prisma.processo.findMany({
+            // Verifica se existem sinistros vinculados a essa delegacia
+            const sinistrosVinculados = await prisma.sinistro.findMany({
                 where: { delegaciaId: id }
             });
-            
-            if (processosVinculados.length > 0) {
-                return res.status(400).json({ message: "Esta delegacia está vinculada a um processo e não pode ser excluída." });
+
+            if (sinistrosVinculados.length > 0) {
+                return res.status(400).json({ message: "Esta delegacia está vinculada a um sinistro e não pode ser excluída." });
             }
+
             // Excluir delegacia
             await prisma.delegacia.delete({ where: { id } });
 
