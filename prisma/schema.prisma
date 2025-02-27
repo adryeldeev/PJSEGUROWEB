@@ -171,7 +171,7 @@ model Delegacia {
   numeroBo        String?
   userId          String
   user            User @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
-    sinistro  Sinistro[]
+  sinistro  Sinistro[]
 }
 
 model Vitima {

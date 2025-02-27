@@ -155,8 +155,16 @@ router.get('/delegacia/:id',authenticate,  DelegaciaController.getDelegaciaById)
 router.put('/updateDelegacia/:id',authenticate,  DelegaciaController.updateDelegacia);
 router.delete('/deleteDelegacia/:id', authenticate, DelegaciaController.deleteDelegacia);
 
+// Rotas de Delegacia (novo arquivo ou dentro do mesmo arquivo de rotas)
+router.post('/delegacia', authenticate, DelegaciaController.createDelegacia); // Criar uma nova delegacia
+router.put('/delegacia/:id', authenticate, DelegaciaController.updateDelegacia); // Atualizar uma delegacia existente
+router.get('/delegacia/:id', authenticate, DelegaciaController.getDelegaciaById); // Buscar uma delegacia pelo ID
+router.delete('/delegacia/:id', authenticate, DelegaciaController.deleteDelegacia); // Excluir uma delegacia pelo ID
+//sinistro
+router.post('/sinistro', authenticate,SinistroController.updateOrCreateSinistro); // Criação ou atualização
+router.put('/sinistro/:processoId',authenticate, SinistroController.updateOrCreateSinistro); // Atualização, caso já exista
+// Rota para buscar o sinistro associado ao sinistro
+router.get('/sinistro/:processoId', authenticate,SinistroController.getSinistroByProcessoId);
 
-
-router.put('/updateSinistro/:processoId',authenticate,  SinistroController.updateOrCreateSinistro);
 
 export { router}
