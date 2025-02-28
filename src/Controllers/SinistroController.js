@@ -83,7 +83,6 @@ export default {
                         cidade: cidade || null, 
                         numeroBo: numeroBo || null, 
                         dataBo: dataBo ? new Date(dataBo) : null,
-                        processoId: parseInt(processoId), // Vincula a delegacia ao processo
                         userId 
                     },
                 });
