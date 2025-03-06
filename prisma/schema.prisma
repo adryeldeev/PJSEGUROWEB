@@ -123,7 +123,7 @@ model Checklist {
 
 model Andamento { 
   id                 Int            @id @default(autoincrement())
-  data               DateTime?       @default(now())
+  data               DateTime?      @default(now())
   observacoes        String?
   faseProcessoId     Int
   faseProcesso       FaseProcesso   @relation(fields: [faseProcessoId], references: [id])
@@ -131,6 +131,8 @@ model Andamento {
   user               User           @relation(fields: [userId], references: [id])
   processoId         Int
   processo           Processo       @relation(fields: [processoId], references: [id])
+
+  @@unique([faseProcessoId, processoId]) // Garante que um processo tenha apenas um andamento por fase
 }
 
 model TipoDeVeiculo {

@@ -114,7 +114,9 @@ export default {
                     user: true,
                 },
             });
-            console.log(processos)
+        console.log(processos)
+         
+            
     
             return res.status(200).json(processos);
         } catch (error) {

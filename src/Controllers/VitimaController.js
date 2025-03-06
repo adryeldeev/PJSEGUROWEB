@@ -78,7 +78,7 @@ export default {
                     userId
                 }
             });
-            console.log('Vitima criada: ', vitima)
+            
     
             return res.status(201).json({
                 error: false,

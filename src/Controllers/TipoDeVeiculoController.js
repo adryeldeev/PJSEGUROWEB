@@ -46,6 +46,7 @@ export default {
     async findAllTipoVeiculos(req, res) {
         try {
             const tipoVeiculos = await prisma.tipoDeVeiculo.findMany();
+            console.log(tipoVeiculos)
             return res.status(200).json({ error: false, tipoVeiculos });
         } catch (error) {
             console.error("Erro ao buscar tipos de veículos:", error);
