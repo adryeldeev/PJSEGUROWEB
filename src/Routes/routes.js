@@ -143,10 +143,10 @@ router.delete('/deleteProcessos/:id', authenticate, ProcessoController.deletePro
 
 
 
-router.post('/createAndamento', authenticate, AndamentoController.createAndamento)
+router.post('/createAndamento', authenticate, AndamentoController. createAndamento)
 router.get('/andamentos', authenticate,AndamentoController.findAll);
-router.get('/andamento/:id',authenticate,  AndamentoController.findByProcessoId);
-router.put('/updateAndamento/:id',authenticate,  AndamentoController.updateAndamento);
+router.get('/andamento/:id',authenticate,  AndamentoController.getById);
+router.put('/updateAndamento/:id',authenticate,  AndamentoController. updateAndamento);
 router.delete('/deleteAndamento/:id', authenticate, AndamentoController.deleteAndamento);
 
 router.post('/createDelegacia', authenticate, DelegaciaController.createDelegacia)
