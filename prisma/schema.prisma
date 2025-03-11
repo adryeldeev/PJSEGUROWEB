@@ -104,6 +104,7 @@ model Seguradora {
   nome      String?
   userId    String
   user      User @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
+  processo Processo?
 }
 
 
@@ -137,14 +138,14 @@ model Andamento {
 
 model TipoDeVeiculo {
   id        Int @id @default(autoincrement())
-  nome      String? 
+  ano        Int?
   placa     String?  @unique
   marca     String?
   modelo    String?
   userId    String
   user      User @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
 
- sinistro   Sinistro[]
+ sinistro   Sinistro?
 
 }
 model Sinistro {
@@ -157,25 +158,25 @@ model Sinistro {
   processoId      Int             @unique
   processo        Processo       @relation(fields: [processoId], references: [id])
   
-  tipoDeVeiculoId Int?            
+  tipoDeVeiculoId Int?        @unique       
   tipoDeVeiculo   TipoDeVeiculo?  @relation(fields: [tipoDeVeiculoId], references: [id])
 
-  delegaciaId Int?                
-  delegacia   Delegacia?          @relation(fields: [delegaciaId], references: [id])
+  delegaciaId Int?   @unique  // Agora o campo delegaciaId é único, garantindo 1-1
+  delegacia   Delegacia? @relation(fields: [delegaciaId], references: [id]) // Mantemos apenas aqui
 }
 
 model Delegacia {
-  id              Int @id @default(autoincrement())
-  delegacia       String?
-  uf              String?
-  cidade          String?
-  dataBo          DateTime?       @default(now())
-  numeroBo        String?
-  userId          String
-  user            User @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
-  sinistro  Sinistro[]
-}
+  id          Int @id @default(autoincrement())
+  delegacia   String?
+  uf          String?
+  cidade      String?
+  dataBo      DateTime?       @default(now())
+  numeroBo    String?
+  userId      String
+  user        User @relation(fields: [userId], references: [id])
 
+  sinistro   Sinistro?  // Apenas referência sem @relation, pois já está no Sinistro
+}
 model Vitima {
   id              Int         @id @default(autoincrement()) // ID único da vítima
   nome            String      // Nome completo da vítima
@@ -214,6 +215,8 @@ model Processo {
   vitima         Vitima         @relation(fields: [vitimaId], references: [id])
   userId         String
   user           User           @relation(fields: [userId], references: [id])
+  seguradoraId    Int?         @unique  
+  seguradora    Seguradora?  @relation(fields: [seguradoraId], references: [id]) 
   prioridadeId   Int
   prioridade     Prioridades    @relation(fields: [prioridadeId], references: [id])
   criado_em      DateTime       @default(now())

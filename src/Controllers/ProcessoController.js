@@ -11,7 +11,7 @@ export default {
             const { nome, cpf, rg, data_nascimento, data_emissao, orgao_expedidor, 
                     profissao, renda_mensal, cep, uf, endereco, numero, sexo, bairro, 
                     cidade, email, telefone01, telefone02, activo = false, 
-                    tipoProcessoId, faseProcessoId, prioridadeId } = req.body;
+                    tipoProcessoId, faseProcessoId, prioridadeId, seguradoraId } = req.body;
     
             const userId = req.userId;
            
@@ -163,22 +163,40 @@ export default {
     async updateProcesso(req, res) {
         try {
             const { id } = req.params;
-            const { tipoProcessoId, faseProcessoId, prioridadeId } = req.body;
-
+            const { tipoProcessoId, faseProcessoId, prioridadeId, seguradoraId, seguradoraNome } = req.body;
+    
+            // Verificar se existe uma seguradoraId e se é válida
+            let seguradora = null;
+            if (seguradoraId) {
+                seguradora = await prisma.seguradora.findUnique({ where: { id: parseInt(seguradoraId) } });
+            }
+    
+            // Se não existir seguradora, criar uma nova com o nome fornecido
+            if (!seguradora && seguradoraNome) {
+                seguradora = await prisma.seguradora.create({
+                    data: {
+                        nome: seguradoraNome,
+                        userId: req.userId
+                    }
+                });
+            }
+    
+            // Atualiza o processo e vincula a seguradora, se houver
             const processoAtualizado = await prisma.processo.update({
                 where: { id: parseInt(id) },
                 data: {
                     tipoProcessoId: tipoProcessoId ? parseInt(tipoProcessoId) : undefined,
                     faseProcessoId: faseProcessoId ? parseInt(faseProcessoId) : undefined,
                     prioridadeId: prioridadeId ? parseInt(prioridadeId) : undefined,
+                    seguradoraId: seguradora ? seguradora.id : undefined
                 },
             });
-
+    
             return res.status(200).json({
                 message: "Processo atualizado com sucesso.",
                 processo: processoAtualizado,
             });
-
+    
         } catch (error) {
             console.error(error);
             return res.status(500).json({ message: "Erro ao atualizar o processo.", error });
