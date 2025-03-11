@@ -4,17 +4,17 @@ const prisma = new PrismaClient();
 
 export default {
     async createTipoDeVeiculo(req, res) {
-        const { nome, placa, marca, modelo } = req.body;
+        const { marca, modelo, placa, ano, } = req.body;
         const userId = req.userId;
 
-        if (!nome || !placa || !marca || !modelo) {
+        if (!ano || !placa || !marca || !modelo) {
             return res.status(400).json({ message: "Preencha todos os campos obrigatórios." });
         }
 
         try {
             // Verifica se já existe um tipo de veículo com o mesmo nome
             let tipoDeVeiculo = await prisma.tipoDeVeiculo.findFirst({
-                where: { nome }
+                where: { placa }
             });
 
             if (tipoDeVeiculo) {
@@ -76,7 +76,7 @@ export default {
 
     async updateTipoDeVeiculo(req, res) {
         const { id } = req.params;
-        const { nome, placa, marca, modelo } = req.body;
+        const { ano, placa, marca, modelo } = req.body;
 
         try {
             const tipoDeVeiculoExistente = await prisma.tipoDeVeiculo.findUnique({
@@ -89,7 +89,7 @@ export default {
 
             // Criando objeto de atualização dinâmico
             const dataToUpdate = {};
-            if (nome !== undefined) dataToUpdate.nome = nome;
+            if (ano !== undefined) dataToUpdate.ano = ano;
             if (placa !== undefined) dataToUpdate.placa = placa;
             if (marca !== undefined) dataToUpdate.marca = marca;
             if (modelo !== undefined) dataToUpdate.modelo = modelo;
