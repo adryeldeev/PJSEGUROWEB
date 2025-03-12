@@ -11,7 +11,7 @@ export default {
             const { nome, cpf, rg, data_nascimento, data_emissao, orgao_expedidor, 
                     profissao, renda_mensal, cep, uf, endereco, numero, sexo, bairro, 
                     cidade, email, telefone01, telefone02, activo = false, 
-                    tipoProcessoId, faseProcessoId, prioridadeId, seguradoraId } = req.body;
+                    tipoProcessoId, faseProcessoId, prioridadeId} = req.body;
     
             const userId = req.userId;
            
@@ -112,7 +112,13 @@ export default {
                     faseProcesso: true,
                     prioridade: true,
                     user: true,
-                },
+                    seguradora: {  // 🔹 Adiciona a seguradora para trazer nome e id
+                        select: {
+                            id: true,
+                            nome: true
+                        }
+                }
+            }
             });
         console.log(processos)
          
@@ -144,7 +150,13 @@ export default {
                     faseProcesso: true,
                     prioridade: true,
                     user: true,
-                },
+                    seguradora: {  // 🔹 Adiciona a seguradora para trazer nome e id
+                        select: {
+                            id: true,
+                            nome: true
+                        }
+                }
+            }
             });
             
     
@@ -163,7 +175,31 @@ export default {
     async updateProcesso(req, res) {
         try {
             const { id } = req.params;
-            const { tipoProcessoId, faseProcessoId, prioridadeId, seguradoraId, seguradoraNome } = req.body;
+            const { 
+                tipoProcessoId, 
+                faseProcessoId, 
+                prioridadeId, 
+                seguradoraId, 
+                seguradoraNome, 
+                vitimaId, 
+                vitima // Aqui recebo um objeto com os dados da vítima a serem atualizados
+            } = req.body;
+    
+            // Atualizar a vítima, se os dados forem fornecidos
+            if (vitimaId && vitima) {
+                await prisma.vitima.update({
+                    where: { id: parseInt(vitimaId) },
+                    data: {
+                        nome: vitima.nome ?? undefined,
+                        email: vitima.email ?? undefined,
+                        telefone01: vitima.telefone01 ?? undefined,
+                       
+                        endereco: vitima.endereco ?? undefined,
+                        
+                       
+                    },
+                });
+            }
     
             // Verificar se existe uma seguradoraId e se é válida
             let seguradora = null;
@@ -181,7 +217,7 @@ export default {
                 });
             }
     
-            // Atualiza o processo e vincula a seguradora, se houver
+            // Atualizar o processo com os novos dados
             const processoAtualizado = await prisma.processo.update({
                 where: { id: parseInt(id) },
                 data: {
@@ -190,7 +226,20 @@ export default {
                     prioridadeId: prioridadeId ? parseInt(prioridadeId) : undefined,
                     seguradoraId: seguradora ? seguradora.id : undefined
                 },
+                include: {
+                    vitima: true, 
+                    tipoProcesso: true, 
+                    faseProcesso: true, 
+                    prioridade: true, 
+                    seguradora: {
+                        select: {
+                            id: true,
+                            nome: true  // Certifique-se de que o nome da seguradora está sendo retornado
+                        }
+                }
+            }
             });
+            console.log('Dados de processo atualizado :', processoAtualizado)
     
             return res.status(200).json({
                 message: "Processo atualizado com sucesso.",
