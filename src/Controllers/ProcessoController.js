@@ -181,6 +181,7 @@ export default {
                 prioridadeId, 
                 seguradoraId, 
                 seguradoraNome, 
+                tipoProcessoNome,
                 vitimaId, 
                 vitima // Aqui recebo um objeto com os dados da vítima a serem atualizados
             } = req.body;
@@ -201,6 +202,19 @@ export default {
                 });
             }
     
+            let tipoProcesso = null;
+            if (tipoProcessoId) {
+                tipoProcesso = await prisma.tiposDeProcesso.findUnique({ where: { id: parseInt(tipoProcessoId) } });
+            }
+    
+            // Se não existir, criar um novo com o nome fornecido
+            if (!tipoProcesso && tipoProcessoNome) {
+                tipoProcesso = await prisma.tiposDeProcesso.create({
+                    data: {
+                        nome: tipoProcessoNome
+                    }
+                });
+            }
             // Verificar se existe uma seguradoraId e se é válida
             let seguradora = null;
             if (seguradoraId) {
@@ -228,7 +242,12 @@ export default {
                 },
                 include: {
                     vitima: true, 
-                    tipoProcesso: true, 
+                    tipoProcesso: {
+                        select:{
+                            id:true,
+                            nome:true
+                        }
+                    }, 
                     faseProcesso: true, 
                     prioridade: true, 
                     seguradora: {
