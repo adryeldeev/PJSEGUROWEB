@@ -82,7 +82,7 @@ router.post('/createUser',UserController.createUser)
 router.post('/login', UserController.loginUser)
 router.get('/user/:id',authenticate, UserController.getUserById)
 
-//Processo
+// Fase Processo
 router.post('/createProcesso',authenticate,FaseProcessoController.createProcesso)
 router.get('/fases-processos',authenticate,FaseProcessoController.findAll)
 router.put('/updateFasesProcesso/:id',authenticate,FaseProcessoController.updateProcesso)
