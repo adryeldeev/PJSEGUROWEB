@@ -132,11 +132,44 @@ export default {
 
     async deleteAndamento(req, res) {
         const { id } = req.params;
+    
         try {
+            // 🔹 Buscar o andamento que será excluído
+            const andamentoExcluido = await prisma.andamento.findUnique({
+                where: { id: parseInt(id) },
+                select: { processoId: true, faseProcessoId: true, data: true }
+            });
+    
+            if (!andamentoExcluido) {
+                return res.status(404).json({ message: "Andamento não encontrado." });
+            }
+    
+            const { processoId, createdAt } = andamentoExcluido;
+    
+            // 🔹 Buscar o andamento anterior (último andamento antes do excluído)
+            const ultimoAndamento = await prisma.andamento.findFirst({
+                where: {
+                    processoId: processoId,
+                    data: { lt: andamentoExcluido.data } // ✅ Correto
+    },
+            orderBy: { data: "desc" } // Ordena para pegar o mais recente antes do excluído
+            });
+    
+            // 🔹 Excluir o andamento
             await prisma.andamento.delete({ where: { id: parseInt(id) } });
+    
+            // 🔹 Se existir um andamento anterior, atualizar a fase do processo
+            if (ultimoAndamento) {
+                await prisma.processo.update({
+                    where: { id: processoId },
+                    data: { faseProcessoId: ultimoAndamento.faseProcessoId }
+                });
+            }
+    
             return res.status(200).json({ message: "Andamento excluído com sucesso." });
+    
         } catch (error) {
-            console.error(error);
+            console.error("Erro ao excluir andamento:", error);
             return res.status(500).json({ message: "Erro ao excluir andamento." });
         }
     }

@@ -68,7 +68,7 @@ export default {
                     }
                 });
     
-                console.log("Nova vítima criada:", vitima);
+             
             } else {
                 console.log("Vítima já existente:", vitima);
             }
@@ -120,7 +120,7 @@ export default {
                 }
             }
             });
-        console.log(processos)
+        
          
             
     
@@ -182,83 +182,107 @@ export default {
                 seguradoraId, 
                 seguradoraNome, 
                 tipoProcessoNome,
+                prioridadeNome,
+                data,
+                observacoes,
                 vitimaId, 
-                vitima // Aqui recebo um objeto com os dados da vítima a serem atualizados
+                vitima 
             } = req.body;
     
-            // Atualizar a vítima, se os dados forem fornecidos
+            // 🔹 Atualizar os dados da vítima, se informados
             if (vitimaId && vitima) {
                 await prisma.vitima.update({
                     where: { id: parseInt(vitimaId) },
                     data: {
-                        nome: vitima.nome ?? undefined,
-                        email: vitima.email ?? undefined,
-                        telefone01: vitima.telefone01 ?? undefined,
-                       
-                        endereco: vitima.endereco ?? undefined,
-                        
-                       
+                        nome: vitima.nome || undefined,
+                        email: vitima.email || undefined,
+                        telefone01: vitima.telefone01 || undefined,
+                        endereco: vitima.endereco || undefined,
                     },
                 });
             }
     
-            let tipoProcesso = null;
-            if (tipoProcessoId) {
-                tipoProcesso = await prisma.tiposDeProcesso.findUnique({ where: { id: parseInt(tipoProcessoId) } });
+            // 🔹 Verificar e criar prioridade, se necessário
+            let prioridade = prioridadeId ? 
+                await prisma.prioridades.findUnique({ where: { id: parseInt(prioridadeId) } }) : 
+                null;
+    
+            if (!prioridade && prioridadeNome) {
+                prioridade = await prisma.prioridades.create({
+                    data: { nome: prioridadeNome }
+                });
             }
     
-            // Se não existir, criar um novo com o nome fornecido
+            // 🔹 Verificar e criar tipo de processo, se necessário
+            let tipoProcesso = tipoProcessoId ? 
+                await prisma.tiposDeProcesso.findUnique({ where: { id: parseInt(tipoProcessoId) } }) : 
+                null;
+    
             if (!tipoProcesso && tipoProcessoNome) {
                 tipoProcesso = await prisma.tiposDeProcesso.create({
-                    data: {
-                        nome: tipoProcessoNome
-                    }
+                    data: { nome: tipoProcessoNome }
                 });
             }
-            // Verificar se existe uma seguradoraId e se é válida
-            let seguradora = null;
-            if (seguradoraId) {
-                seguradora = await prisma.seguradora.findUnique({ where: { id: parseInt(seguradoraId) } });
-            }
     
-            // Se não existir seguradora, criar uma nova com o nome fornecido
+            // 🔹 Verificar e criar seguradora, se necessário
+            let seguradora = seguradoraId ? 
+                await prisma.seguradora.findUnique({ where: { id: parseInt(seguradoraId) } }) : 
+                null;
+    
             if (!seguradora && seguradoraNome) {
                 seguradora = await prisma.seguradora.create({
+                    data: { nome: seguradoraNome, userId: req.userId }
+                });
+            }
+            const andamentoExistente = await prisma.andamento.findFirst({
+                where: { processoId: parseInt(id), faseProcessoId: faseProcessoId },
+            });
+    
+            if (andamentoExistente) {
+                await prisma.andamento.update({
+                    where: { id: andamentoExistente.id },
                     data: {
-                        nome: seguradoraNome,
-                        userId: req.userId
-                    }
+                        observacoes: observacoes || andamentoExistente.observacoes,
+                        data: data ? new Date(data) : andamentoExistente.data,
+                    },
+                });
+            } else {
+                // Se não existir, cria um novo andamento
+                await prisma.andamento.create({
+                    data: {
+                        processoId: parseInt(id),
+                        faseProcessoId: faseProcessoId,
+                        userId: req.user.id, // Certifique-se que `req.user.id` contém o usuário correto
+                        observacoes: observacoes,
+                        data: data ? new Date(data) : new Date(),
+                    },
                 });
             }
     
-            // Atualizar o processo com os novos dados
+            const dadosAtualizados = Object.fromEntries(
+                Object.entries({
+                    tipoProcesso: tipoProcessoId ? { connect: { id: tipoProcessoId } } : undefined,
+                    faseProcesso: faseProcessoId ? { connect: { id: faseProcessoId } } : undefined,
+                    prioridade: prioridadeId ? { connect: { id: prioridadeId } } : undefined,
+                    seguradora: seguradoraId ? { connect: { id: seguradoraId } } : undefined,
+                    
+                }).filter(([_, v]) => v !== undefined) // Remove campos undefined
+            );
+    
+            // 🔹 Atualizar o processo com os novos dados
             const processoAtualizado = await prisma.processo.update({
                 where: { id: parseInt(id) },
-                data: {
-                    tipoProcessoId: tipoProcessoId ? parseInt(tipoProcessoId) : undefined,
-                    faseProcessoId: faseProcessoId ? parseInt(faseProcessoId) : undefined,
-                    prioridadeId: prioridadeId ? parseInt(prioridadeId) : undefined,
-                    seguradoraId: seguradora ? seguradora.id : undefined
-                },
+                data: dadosAtualizados,
                 include: {
-                    vitima: true, 
-                    tipoProcesso: {
-                        select:{
-                            id:true,
-                            nome:true
-                        }
-                    }, 
-                    faseProcesso: true, 
-                    prioridade: true, 
-                    seguradora: {
-                        select: {
-                            id: true,
-                            nome: true  // Certifique-se de que o nome da seguradora está sendo retornado
-                        }
-                }
-            }
+                    vitima: true,
+                    tipoProcesso: { select: { id: true, nome: true } },
+                    faseProcesso: true,
+                    prioridade: { select: { id: true, nome: true } },
+                    seguradora: { select: { id: true, nome: true } },
+                },
             });
-            console.log('Dados de processo atualizado :', processoAtualizado)
+    
+           
     
             return res.status(200).json({
                 message: "Processo atualizado com sucesso.",
@@ -266,7 +290,7 @@ export default {
             });
     
         } catch (error) {
-            console.error(error);
+            console.error("Erro ao atualizar processo:", error);
             return res.status(500).json({ message: "Erro ao atualizar o processo.", error });
         }
     },
