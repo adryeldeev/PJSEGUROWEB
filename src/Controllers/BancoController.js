@@ -113,13 +113,13 @@ export default {
         const userId = req.userId;
         
         try {
-            const bancoExisting = await prisma.cliente.findFirst({
+            const bancoExisting = await prisma.banco.findFirst({
                 where:{id:Number(id), userId}
             })
             if(!bancoExisting){
                 return res.status(404).json({message:"Banco não encontrado"})
             }
-            const banco = await prisma.cliente.delete({
+            const banco = await prisma.banco.delete({
                 where:{id:Number(id)}
             })
             return res.status(200).json({
