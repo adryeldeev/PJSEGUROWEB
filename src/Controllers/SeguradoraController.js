@@ -128,6 +128,15 @@ export default {
         if (!seguradora) {
           return res.status(404).json({ message: 'Seguradora não encontrada!' });
         }
+        const processoAssociado = await prisma.processo.findFirst({
+          where: { seguradoraId: seguradora.id }
+      });
+
+      if (processoAssociado) {
+          return res.status(400).json({ 
+              message: "Esta seguradora está associada a um processo e não pode ser excluída." 
+          });
+      }
         await prisma.seguradora.delete({
           where: { id: Number(id) },
         });

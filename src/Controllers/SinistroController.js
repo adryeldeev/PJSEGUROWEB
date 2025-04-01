@@ -60,7 +60,7 @@ export default {
         const novoVeiculo = await prisma.tipoDeVeiculo.create({
           data: { marca, modelo, placa, ano: anoFormatado, userId },
         });
-        console.log('Dados tipo de veiculo:' , novoVeiculo);
+       
         tipoDeVeiculoIdFinal = novoVeiculo.id;
       }
 

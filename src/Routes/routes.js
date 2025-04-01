@@ -34,6 +34,8 @@ const storage = multer.diskStorage({
             folder += "documentos/";
         } else if (req.originalUrl.includes("updateChecklist")) {
             folder += "checklist/"; // Adicione esta condição para a atualização
+        }  else if (req.originalUrl.includes("uploadProfileImage")) { // Nova condição para imagens de perfil
+            folder += "users/";
         }
 
         cb(null, path.join(__dirname, "../../", folder));
@@ -81,6 +83,8 @@ router.delete('/deleteChecklist/:id', authenticate, ChecklistController.deleteCh
 router.post('/createUser',UserController.createUser)
 router.post('/login', UserController.loginUser)
 router.get('/user/:id',authenticate, UserController.getUserById)
+router.post('/uploadProfileImage', authenticate, upload.single('file'), UserController.uploadProfileImage);
+
 
 // Fase Processo
 router.post('/createProcesso',authenticate,FaseProcessoController.createProcesso)
@@ -142,24 +146,21 @@ router.put('/updateProcessos/:id',authenticate,  ProcessoController.updateProces
 router.delete('/deleteProcessos/:id', authenticate, ProcessoController.deleteProcesso);
 
 
-
+//andamento
 router.post('/createAndamento', authenticate, AndamentoController. createAndamento)
 router.get('/andamentos', authenticate,AndamentoController.findAll);
 router.get('/andamento/:id',authenticate,  AndamentoController.getById);
 router.put('/updateAndamento/:id',authenticate,  AndamentoController. updateAndamento);
 router.delete('/deleteAndamento/:id', authenticate, AndamentoController.deleteAndamento);
 
+//delegacia
 router.post('/createDelegacia', authenticate, DelegaciaController.createDelegacia)
 router.get('/delegacia', authenticate, DelegaciaController.getAllDelegacias);
 router.get('/delegacia/:id',authenticate,  DelegaciaController.getDelegaciaById);
 router.put('/updateDelegacia/:id',authenticate,  DelegaciaController.updateDelegacia);
 router.delete('/deleteDelegacia/:id', authenticate, DelegaciaController.deleteDelegacia);
 
-// Rotas de Delegacia (novo arquivo ou dentro do mesmo arquivo de rotas)
-router.post('/delegacia', authenticate, DelegaciaController.createDelegacia); // Criar uma nova delegacia
-router.put('/delegacia/:id', authenticate, DelegaciaController.updateDelegacia); // Atualizar uma delegacia existente
-router.get('/delegacia/:id', authenticate, DelegaciaController.getDelegaciaById); // Buscar uma delegacia pelo ID
-router.delete('/delegacia/:id', authenticate, DelegaciaController.deleteDelegacia); // Excluir uma delegacia pelo ID
+
 //sinistro
 router.post('/sinistro', authenticate,SinistroController.updateOrCreateSinistro); 
 router.put('/sinistro/:processoId',authenticate, SinistroController.updateOrCreateSinistro); // Atualização, caso já exista

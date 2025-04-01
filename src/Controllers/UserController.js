@@ -3,8 +3,9 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 dotenv.config();
-const { PrismaClient } = pkg;     
-const prisma = new PrismaClient();  
+
+const { PrismaClient } = pkg;
+const prisma = new PrismaClient();
 
 const messages = {
   fieldsMissing: "Preencha todos os campos",
@@ -14,6 +15,7 @@ const messages = {
   userNotFound: "Usuário não encontrado",
   passwordUpdated: "Senha atualizada com sucesso",
   userCreated: "Usuário criado com sucesso",
+  profileUpdated: "Perfil atualizado com sucesso",
 };
 
 export default {
@@ -32,7 +34,7 @@ export default {
 
       const userExiste = await prisma.user.findFirst({
         where: {
-          OR: [ { email: normalizedEmail }],
+          OR: [{ email: normalizedEmail }],
         },
       });
 
@@ -66,33 +68,33 @@ export default {
 
   async loginUser(req, res) {
     const { email, password } = req.body;
-  
+
     if (!email || !password) {
       return res.status(400).json({ message: messages.fieldsMissing });
     }
-  
+
     try {
       const normalizedEmail = email.trim().toLowerCase();
-  
+
       const user = await prisma.user.findFirst({
         where: { email: normalizedEmail },
       });
-  
+
       if (!user || !(await bcrypt.compare(password, user.password))) {
         return res.status(401).json({ message: messages.invalidCredentials });
       }
-  
+
       const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
         expiresIn: "7d",
       });
-  
-      // Include user data in the response
+
       const userData = {
         id: user.id,
         username: user.username,
         email: user.email,
+        profileImage: user.profileImage, // Adicionando a imagem de perfil no retorno
       };
-  
+
       return res.status(200).json({
         error: false,
         message: "Login realizado com sucesso!",
@@ -107,20 +109,26 @@ export default {
       });
     }
   },
+
   async getUserById(req, res) {
-    const { id } = req.params; 
-  
+    const { id } = req.params;
+
     try {
-      const user = await prisma.user.findFirst({
-        where: { 
-          id: id 
+      const user = await prisma.user.findUnique({
+        where: { id },
+        select: { 
+          id: true,
+          username: true,
+          email: true,
+          profileImage: true, // Certifique-se de incluir este campo
         }
       });
-  
+      
+
       if (!user) {
         return res.status(404).json({ message: "Usuário não encontrado" });
       }
-  
+
       return res.status(200).json({
         error: false,
         message: "Usuário encontrado com sucesso",
@@ -130,7 +138,8 @@ export default {
       console.error(error);
       return res.status(500).json({ message: "Erro interno no servidor" });
     }
-  },
+  }
+,
 
   async updatePassword(req, res) {
     const { userId, currentPassword, newPassword, confirmNewPassword } = req.body;
@@ -159,19 +168,81 @@ export default {
 
       const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
-      const updatedUser = await prisma.user.update({
+      await prisma.user.update({
         where: { id: userId },
         data: { password: hashedNewPassword },
       });
 
+      return res.status(200).json({ message: messages.passwordUpdated });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        message: "Erro ao atualizar a senha",
+        error: error.message,
+      });
+    }
+  },
+
+  async uploadProfileImage(req, res) {
+    console.log("req.userId:", req.userId); // Teste para ver se req.userId está sendo populado corretamente
+
+    if (!req.userId) {
+      return res.status(401).json({ error: "Usuário não autenticado." });
+    }
+
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "Nenhuma imagem enviada." });
+      }
+
+      const userId = req.userId;
+      const imagePath = `/uploads/users/${req.file.filename}`;
+
+      await prisma.user.update({
+        where: { id: userId },
+        data: { profileImage: imagePath },
+      });
+
+      res.json({ message: "Imagem de perfil atualizada com sucesso!", imagePath });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Erro ao fazer upload da imagem." });
+    }
+},
+
+  async updateUser(req, res) {
+    const { userId } = req.userId; // Obtém o ID do usuário da URL
+    const { username, email } = req.body;
+    let imagePath = null;
+
+    try {
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+
+      if (!user) {
+        return res.status(404).json({ message: messages.userNotFound });
+      }
+
+      if (req.file) {
+        imagePath = `/uploads/users/${req.file.filename}`;
+      }
+
+      const updatedUser = await prisma.user.update({
+        where: { id: userId },
+        data: {
+          username: username || user.username,
+          email: email ? email.trim().toLowerCase() : user.email,
+          profileImage: imagePath || user.profileImage,
+        },
+      });
+
       return res.status(200).json({
-        message: messages.passwordUpdated,
+        message: messages.profileUpdated,
         user: updatedUser,
       });
     } catch (error) {
       console.error(error);
       return res.status(500).json({
-        message: "Erro ao atualizar a senha",
+        message: "Erro ao atualizar o usuário",
         error: error.message,
       });
     }

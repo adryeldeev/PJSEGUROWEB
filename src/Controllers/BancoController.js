@@ -53,7 +53,7 @@ export default {
         }
 },
     async findBancoById(req, res){
-        const { id } = req.params;
+        const { id } = req.params;  
         const userId = req.userId;
 
         try {
@@ -119,6 +119,16 @@ export default {
             if(!bancoExisting){
                 return res.status(404).json({message:"Banco não encontrado"})
             }
+            const processoAssociado = await prisma.processo.findFirst({
+                where: { bancoId: bancoExisting.id }
+            });
+    
+            if (processoAssociado) {
+                return res.status(400).json({ 
+                    message: "Este banco está associada a um processo e não pode ser excluída." 
+                });
+            }
+            
             const banco = await prisma.banco.delete({
                 where:{id:Number(id)}
             })

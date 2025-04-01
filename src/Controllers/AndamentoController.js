@@ -144,7 +144,7 @@ export default {
                 return res.status(404).json({ message: "Andamento não encontrado." });
             }
     
-            const { processoId, createdAt } = andamentoExcluido;
+            const { processoId } = andamentoExcluido;
     
             // 🔹 Buscar o andamento anterior (último andamento antes do excluído)
             const ultimoAndamento = await prisma.andamento.findFirst({
