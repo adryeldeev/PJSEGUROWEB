@@ -9,7 +9,7 @@ export default {
     async createVitima(req, res) {
         const { 
             nome, cpf, rg, data_nascimento, data_emissao, orgao_expedidor, 
-            profissao, renda_mensal, cep, uf, endereco, numero, sexo, bairro, 
+            profissao, renda_mensal, cep, uf, endereco, numero, sexo, bairro, complemento, 
             cidade, email, telefone01, telefone02, activo = false
         } = req.body;
     
@@ -52,7 +52,7 @@ export default {
             const dataEmissaoAjusted = data_emissao 
                 ? moment.tz(data_emissao, "America/Sao_Paulo").toDate() 
                 : null;
-    
+                const rendaMensalNumerica = parseInt(renda_mensal, 10); 
             // Criar vítima
             const vitima = await prisma.vitima.create({
                 data: {
@@ -63,7 +63,7 @@ export default {
                     data_emissao: dataEmissaoAjusted,
                     orgao_expedidor: orgao_expedidor || "",
                     profissao: profissao ?? null,
-                    renda_mensal: renda_mensal || null,
+                    renda_mensal: !isNaN(rendaMensalNumerica) ? rendaMensalNumerica : null,
                     cep: cepNormalized,
                     uf: uf ?? null,
                     endereco: endereco || "",
@@ -71,6 +71,7 @@ export default {
                     sexo: sexo || null,
                     bairro: bairro || "",
                     cidade: cidade || "",
+                    complemento: complemento|| "",
                     email: email || "",
                     telefone01: telefone01 ?? null,
                     telefone02: telefone02 ?? null,
@@ -128,7 +129,7 @@ export default {
         const {
             nome, cpf, rg, data_nascimento, data_emissao, orgao_expedidor,
             profissao, renda_mensal, cep, uf, endereco, numero, sexo, 
-            bairro, cidade, email, telefone01, telefone02, activo
+            bairro, cidade,complemento, email, telefone01, telefone02, activo 
         } = req.body;
     
         try {
@@ -147,7 +148,8 @@ export default {
                     return res.status(400).json({ message: "CPF inválido. Deve conter 11 dígitos numéricos." });
                 }
             }
-    
+            const rendaMensalNumerica = parseInt(renda_mensal, 10); // Converte para número inteiro
+
             const dadosAtualizados = {
                 nome,
                 cpf: cpfNormalized,
@@ -156,7 +158,7 @@ export default {
                 data_emissao: data_emissao ? new Date(data_emissao) : null,
                 orgao_expedidor,
                 profissao,
-                renda_mensal,
+                renda_mensal: !isNaN(rendaMensalNumerica) ? rendaMensalNumerica : null, // Garantindo que seja número
                 cep,
                 uf,
                 endereco,
@@ -164,6 +166,7 @@ export default {
                 sexo,
                 bairro,
                 cidade,
+                complemento,
                 email,
                 telefone01,
                 telefone02,

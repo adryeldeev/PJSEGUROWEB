@@ -46,7 +46,7 @@ export default {
     async findAllTipoVeiculos(req, res) {
         try {
             const tipoVeiculos = await prisma.tipoDeVeiculo.findMany();
-            console.log(tipoVeiculos)
+          
             return res.status(200).json({ error: false, tipoVeiculos });
         } catch (error) {
             console.error("Erro ao buscar tipos de veículos:", error);
@@ -121,6 +121,16 @@ export default {
 
             if (!tipoDeVeiculoExistente) {
                 return res.status(404).json({ message: "Tipo de veículo não encontrado." });
+            }
+           // Verifica se o TipoDeVeiculo está vinculado a algum Sinistro
+                const sinistroAssociado = await prisma.sinistro.findFirst({
+                where: { tipoDeVeiculoId: tipoDeVeiculoExistente.id }
+            });
+
+            if (sinistroAssociado) {
+                return res.status(400).json({ 
+                    message: "Este tipo de veículo está associado a um sinistro e não pode ser excluído." 
+                });
             }
 
             await prisma.tipoDeVeiculo.delete({

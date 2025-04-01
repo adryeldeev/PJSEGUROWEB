@@ -117,7 +117,9 @@ export default {
                             id: true,
                             nome: true
                         }
-                }
+                },
+                banco: { select: { id: true, nome: true } } // ✅ Adicionar banco
+
             }
             });
         
@@ -155,7 +157,8 @@ export default {
                             id: true,
                             nome: true
                         }
-                }
+                },
+                banco: { select: { id: true, nome: true } }
             }
             });
             
@@ -175,20 +178,24 @@ export default {
     async updateProcesso(req, res) {
         try {
             const { id } = req.params;
+           
             const { 
                 tipoProcessoId, 
                 faseProcessoId, 
                 prioridadeId, 
-                seguradoraId, 
+                seguradoraId,
+                bancoId, 
                 seguradoraNome, 
                 tipoProcessoNome,
                 prioridadeNome,
+                bancoNome,
                 data,
                 observacoes,
                 vitimaId, 
                 vitima 
             } = req.body;
-    
+           
+
             // 🔹 Atualizar os dados da vítima, se informados
             if (vitimaId && vitima) {
                 await prisma.vitima.update({
@@ -201,43 +208,52 @@ export default {
                     },
                 });
             }
-    
+            
             // 🔹 Verificar e criar prioridade, se necessário
             let prioridade = prioridadeId ? 
                 await prisma.prioridades.findUnique({ where: { id: parseInt(prioridadeId) } }) : 
                 null;
-    
+
             if (!prioridade && prioridadeNome) {
                 prioridade = await prisma.prioridades.create({
                     data: { nome: prioridadeNome }
                 });
             }
-    
+            
             // 🔹 Verificar e criar tipo de processo, se necessário
             let tipoProcesso = tipoProcessoId ? 
                 await prisma.tiposDeProcesso.findUnique({ where: { id: parseInt(tipoProcessoId) } }) : 
                 null;
-    
+
             if (!tipoProcesso && tipoProcessoNome) {
                 tipoProcesso = await prisma.tiposDeProcesso.create({
                     data: { nome: tipoProcessoNome }
                 });
             }
-    
+
+            // 🔹 Verificar e criar banco, se necessário
+            let banco = bancoId ? await prisma.banco.findUnique({ where: { id: parseInt(bancoId,10) } }) : null;
+            if (!banco && bancoNome) {
+                banco = await prisma.banco.create({
+                    data: { nome: bancoNome }
+                });
+            }
+
             // 🔹 Verificar e criar seguradora, se necessário
             let seguradora = seguradoraId ? 
                 await prisma.seguradora.findUnique({ where: { id: parseInt(seguradoraId) } }) : 
                 null;
-    
+
             if (!seguradora && seguradoraNome) {
                 seguradora = await prisma.seguradora.create({
                     data: { nome: seguradoraNome, userId: req.userId }
                 });
             }
+
             const andamentoExistente = await prisma.andamento.findFirst({
                 where: { processoId: parseInt(id), faseProcessoId: faseProcessoId },
             });
-    
+
             if (andamentoExistente) {
                 await prisma.andamento.update({
                     where: { id: andamentoExistente.id },
@@ -252,23 +268,23 @@ export default {
                     data: {
                         processoId: parseInt(id),
                         faseProcessoId: faseProcessoId,
-                        userId: req.user.id, // Certifique-se que `req.user.id` contém o usuário correto
+                        userId: req.userId, 
                         observacoes: observacoes,
                         data: data ? new Date(data) : new Date(),
                     },
                 });
             }
-    
+
             const dadosAtualizados = Object.fromEntries(
                 Object.entries({
                     tipoProcesso: tipoProcessoId ? { connect: { id: tipoProcessoId } } : undefined,
                     faseProcesso: faseProcessoId ? { connect: { id: faseProcessoId } } : undefined,
                     prioridade: prioridadeId ? { connect: { id: prioridadeId } } : undefined,
                     seguradora: seguradoraId ? { connect: { id: seguradoraId } } : undefined,
-                    
+                    banco: bancoId ? { connect: { id: parseInt(bancoId, 10) } } : undefined
                 }).filter(([_, v]) => v !== undefined) // Remove campos undefined
             );
-    
+
             // 🔹 Atualizar o processo com os novos dados
             const processoAtualizado = await prisma.processo.update({
                 where: { id: parseInt(id) },
@@ -279,21 +295,21 @@ export default {
                     faseProcesso: true,
                     prioridade: { select: { id: true, nome: true } },
                     seguradora: { select: { id: true, nome: true } },
+                    banco: { select: { id: true, nome: true } }  // Inclui banco
                 },
             });
-    
-           
-    
+                 
             return res.status(200).json({
                 message: "Processo atualizado com sucesso.",
                 processo: processoAtualizado,
             });
-    
+
         } catch (error) {
             console.error("Erro ao atualizar processo:", error);
             return res.status(500).json({ message: "Erro ao atualizar o processo.", error });
         }
     },
+
 
     // Excluir um processo
     async deleteProcesso(req, res) {
