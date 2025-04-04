@@ -184,7 +184,7 @@ export default {
   },
 
   async uploadProfileImage(req, res) {
-    console.log("req.userId:", req.userId); // Teste para ver se req.userId está sendo populado corretamente
+    
 
     if (!req.userId) {
       return res.status(401).json({ error: "Usuário não autenticado." });
@@ -205,14 +205,13 @@ export default {
 
       res.json({ message: "Imagem de perfil atualizada com sucesso!", imagePath });
     } catch (error) {
-      console.error(error);
+     
       res.status(500).json({ error: "Erro ao fazer upload da imagem." });
     }
 },
 
 async updateUser(req, res) {
-  console.log('Arquivo recebido : ',req.file )
-  console.log('Body recebido : ',req.body )
+  
   const userId = req.userId; 
   const { username, email } = req.body;
   let imagePath = null;

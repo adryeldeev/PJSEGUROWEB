@@ -41,7 +41,12 @@ export default {
     // Buscar todas as delegacias
     async getAllDelegacias(req, res) {
         try {
-            const delegacias = await prisma.delegacia.findMany();
+            const userId = req.userId
+            const delegacias = await prisma.delegacia.findMany({
+                where:{
+                    userId:userId
+                }
+            });
             return res.status(200).json(delegacias);
 
         } catch (error) {

@@ -72,7 +72,12 @@ export default {
     // Buscar todos os checklists
     async findAll(req, res) {
         try {
-            const checklists = await prisma.checklist.findMany();
+            const userId = req.userId
+            const checklists = await prisma.checklist.findMany({
+                where:{
+                    userId:userId
+                }
+            });
             res.status(200).json(checklists); // Retornar diretamente os checklists
         } catch (error) {
             console.error(error);

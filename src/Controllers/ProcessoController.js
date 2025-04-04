@@ -100,7 +100,11 @@ export default {
     // Buscar todos os processos
     async findAll(req, res) {
         try {
+            const userId =  req.userId
             const processos = await prisma.processo.findMany({
+              where:{
+                userId:userId
+              },
                 include: {
                     sinistro: {
                         select: {

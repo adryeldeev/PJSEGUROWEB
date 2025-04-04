@@ -85,7 +85,7 @@ export default {
         return res.status(200).json({ message: messages.resetPasswordLinkSent });
       });
     } catch (error) {
-        console.error("Erro ao enviar email:", error);
+     
       return res.status(500).json({ message: messages.errorSendingEmail });
     }
   },
@@ -108,7 +108,7 @@ export default {
           resetPasswordExpires: { gte: new Date() }, // Verifica se o token ainda é válido
         },
       });
-      console.log("Usuário encontrado:", user);
+      
       if (!user) {
         return res.status(400).json({ message: messages.invalidToken });
       }
