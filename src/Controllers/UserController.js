@@ -210,41 +210,43 @@ export default {
     }
 },
 
-  async updateUser(req, res) {
-    const { userId } = req.userId; // Obtém o ID do usuário da URL
-    const { username, email } = req.body;
-    let imagePath = null;
+async updateUser(req, res) {
+  console.log('Arquivo recebido : ',req.file )
+  console.log('Body recebido : ',req.body )
+  const userId = req.userId; 
+  const { username, email } = req.body;
+  let imagePath = null;
 
-    try {
-      const user = await prisma.user.findUnique({ where: { id: userId } });
+  try {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
 
-      if (!user) {
-        return res.status(404).json({ message: messages.userNotFound });
-      }
-
-      if (req.file) {
-        imagePath = `/uploads/users/${req.file.filename}`;
-      }
-
-      const updatedUser = await prisma.user.update({
-        where: { id: userId },
-        data: {
-          username: username || user.username,
-          email: email ? email.trim().toLowerCase() : user.email,
-          profileImage: imagePath || user.profileImage,
-        },
-      });
-
-      return res.status(200).json({
-        message: messages.profileUpdated,
-        user: updatedUser,
-      });
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({
-        message: "Erro ao atualizar o usuário",
-        error: error.message,
-      });
+    if (!user) {
+      return res.status(404).json({ message: messages.userNotFound });
     }
-  },
+
+    if (req.file) {
+      imagePath = `/uploads/users/${req.file.filename}`;
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        username: username || user.username, // Mantém o antigo se não enviado
+        email: email ? email.trim().toLowerCase() : user.email, 
+        profileImage: imagePath || user.profileImage, // Atualiza apenas se houver nova imagem
+      },
+    });
+
+    return res.status(200).json({
+      message: messages.profileUpdated,
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Erro ao atualizar o usuário",
+      error: error.message,
+    });
+  }
+}
 };

@@ -16,9 +16,11 @@ enum Sexo {
 model User {
   id              String            @id @default(uuid()) // ID do usuário como UUID
   username        String
-  email           String
+  email           String  @unique 
   password        String
   profileImage    String?
+   resetPasswordToken  String?  
+  resetPasswordExpires DateTime? 
   vitimas         Vitima[]
   processos       Processo[]
   fasesProcesso   FaseProcesso[]
