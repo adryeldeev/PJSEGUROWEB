@@ -17,6 +17,7 @@ import AndamentoController from '../Controllers/AndamentoController.js';
 import ChecklistController from '../Controllers/ChecklistController.js';
 import DelegaciaController from '../Controllers/DelegaciaController.js';
 import SinistroController from '../Controllers/SinistroController.js';
+import ResertPasswordController from '../Controllers/ResertPasswordController.js';
 
 
 
@@ -34,7 +35,8 @@ const storage = multer.diskStorage({
             folder += "documentos/";
         } else if (req.originalUrl.includes("updateChecklist")) {
             folder += "checklist/"; // Adicione esta condição para a atualização
-        }  else if (req.originalUrl.includes("uploadProfileImage")) { // Nova condição para imagens de perfil
+        }  else if (req.originalUrl.includes("uploadProfileImage")||
+            req.originalUrl.includes("updateUser")) { // Nova condição para imagens de perfil
             folder += "users/";
         }
 
@@ -72,6 +74,11 @@ router.get('/documento/:id', authenticate, getDocumentoById);
 router.put('/updateDocumento/:id', authenticate, updateDocumento); 
 router.delete('/deleteDocumento/:id', authenticate, deleteDocumento); 
 
+
+// reset passowrd
+router.post('/requestpassword', ResertPasswordController.requestPasswordReset); 
+router.post('/resetpassword', ResertPasswordController.resetPassword); 
+
 // checklist
 router.post('/createChecklist', authenticate, upload.single('file'), ChecklistController.createChecklist); 
 router.get('/checklist', authenticate, ChecklistController.findAll); 
@@ -83,6 +90,7 @@ router.delete('/deleteChecklist/:id', authenticate, ChecklistController.deleteCh
 router.post('/createUser',UserController.createUser)
 router.post('/login', UserController.loginUser)
 router.get('/user/:id',authenticate, UserController.getUserById)
+router.put('/updateUser/:userId', authenticate, upload.single('file'), UserController.updateUser);
 router.post('/uploadProfileImage', authenticate, upload.single('file'), UserController.uploadProfileImage);
 
 
