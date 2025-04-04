@@ -96,7 +96,12 @@ export default {
     // Buscar todas as vítimas
     async findAll(req, res) {
         try {
-            const vitimas = await prisma.vitima.findMany();
+            const userId = req.userId
+            const vitimas = await prisma.vitima.findMany({
+                where:{
+                    userId:userId
+                }
+            });
             return res.status(200).json(vitimas);
         } catch (error) {
             console.error(error);

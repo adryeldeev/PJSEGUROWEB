@@ -45,7 +45,12 @@ export const uploadDocumento = async (req, res) => {
 // Função para buscar todos os documentos
 export const getDocumentos = async (req, res) => {
     try {
-        const documentos = await prisma.documento.findMany();
+        const userId= req.userId
+        const documentos = await prisma.documento.findMany({
+            where:{
+                userId:userId
+            }
+        });
         res.status(200).json(documentos);
     } catch (error) {
         res.status(500).json({ error: 'Erro ao buscar documentos.' });

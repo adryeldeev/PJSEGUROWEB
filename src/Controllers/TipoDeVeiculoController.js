@@ -45,7 +45,12 @@ export default {
 
     async findAllTipoVeiculos(req, res) {
         try {
-            const tipoVeiculos = await prisma.tipoDeVeiculo.findMany();
+            const userId = req.userId
+            const tipoVeiculos = await prisma.tipoDeVeiculo.findMany({
+                where:{
+                    userId:userId
+                }
+            });
           
             return res.status(200).json({ error: false, tipoVeiculos });
         } catch (error) {
