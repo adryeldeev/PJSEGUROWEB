@@ -1,181 +1,228 @@
-generator client {
-  provider   = "prisma-client-js"
-  engineType = "binary"
-}
-
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
+generator client {
+  provider    = "prisma-client-js"
+  engineType  = "binary"
+}
+
+enum Sexo {
+  MASCULINO
+  FEMININO
+}
+
 model User {
-  id              String            @id @default(uuid())
-  username        String
-  email           String
-  password        String
-  banco           Banco[]
-  Cliente         Cliente[]
-  fasesProcesso   FaseProcesso[]
-  parceiro        Parceiro[]
-  Prioridade      Prioridade[]
-  prioridades     Prioridades[]
-  processos       Processo[]
-  seguradora      Seguradora[]
-  tipoDeVeiculo   TipoDeVeiculo[]
-  tiposDeProcesso TiposDeProcesso[]
-  vitimas         Vitima[]
+  id                  String      @id @default(uuid()) // ID do usuário como UUID
+  username            String
+  email               String
+  password            String
+  resetPasswordToken    String?   @db.VarChar(255) 
+  resetPasswordExpires  DateTime?
+  vitimas             Vitima[]    
+  processos           Processo[]  
+  fasesProcesso       FaseProcesso[] 
+  tiposDeProcesso     TiposDeProcesso[] 
+  prioridades         Prioridades[] 
+  parceiro            Parceiro[] 
+  banco               Banco[] 
+  seguradora          Seguradora[] 
+  tipoDeVeiculo       TipoDeVeiculo[] 
+  documento           Documento[] // Relacionamento com documentos
+  andamento           Andamento[] // Relacionamento com andamentos
+  sinistro            Sinistro[] 
+  delegacia           Delegacia[]
+  checklist         Checklist[]
 }
 
 model TiposDeProcesso {
-  id       Int        @id @default(autoincrement())
-  nome     String
-  activo   Boolean
-  userId   String
-  processo Processo[]
-  user     User       @relation(fields: [userId], references: [id])
+  id        Int @id @default(autoincrement())
+  nome      String
+  activo    Boolean
+  userId    String
+  user      User @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
+  processo  Processo[] // Relacionamento com processos
+}
 
-  @@index([userId], map: "TiposDeProcesso_userId_fkey")
+model Documento {
+  id         Int      @id @default(autoincrement())
+  tipo       String
+  descricao  String
+  arquivoUrl String
+  userId     String  // Agora o userId está correto
+  user       User     @relation(fields: [userId], references: [id]) 
 }
 
 model FaseProcesso {
-  id            Int        @id @default(autoincrement())
-  nome          String
-  cor_fundo     String
-  cor_fonte     String
-  pendencia     Boolean
-  muda_fase     Boolean
-  activo        Boolean
-  criado_em     DateTime   @default(now())
-  atualizado_em DateTime   @updatedAt
-  userId        String
-  user          User       @relation(fields: [userId], references: [id])
-  processo      Processo[]
+  id           Int       @id @default(autoincrement())
+  nome         String
+  cor_fundo    String?
+  cor_fonte    String?
+  pendencia    Boolean
+  muda_fase    Boolean
+  activo       Boolean
+  criado_em    DateTime  @default(now())
+  atualizado_em DateTime @updatedAt
+  userId       String
+  user         User      @relation(fields: [userId], references: [id])
+  processo     Processo[]  // Relacionamento com processos
+  andamento    Andamento[] // Relacionamento com andamentos
 
   @@index([userId])
 }
 
 model Prioridades {
-  id        Int     @id @default(autoincrement())
+  id        Int @id @default(autoincrement())
   nome      String
   cor_fundo String
   cor_fonte String
   activo    Boolean
   userId    String
-  user      User    @relation(fields: [userId], references: [id])
-
-  @@index([userId], map: "Prioridades_userId_fkey")
+  user      User @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
+  processo  Processo[]
 }
 
 model Parceiro {
-  id     Int    @id @default(autoincrement())
-  nome   String
-  uf     String
-  cidade String
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  @@index([userId], map: "Parceiro_userId_fkey")
+  id        Int @id @default(autoincrement())
+  nome      String?
+  uf        String?
+  cidade    String?
+  userId    String
+  user      User @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
 }
 
 model Banco {
-  id      Int    @id @default(autoincrement())
-  nome    String
-  agencia Int
-  conta   Int
-  userId  String
-  user    User   @relation(fields: [userId], references: [id])
-
-  @@index([userId], map: "Banco_userId_fkey")
+  id        Int @id @default(autoincrement())
+  nome      String?
+  agencia   String? 
+  conta     String? @unique
+  userId    String
+  user      User @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
 }
 
 model Seguradora {
-  id     Int    @id @default(autoincrement())
-  nome   String
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
+  id        Int @id @default(autoincrement())
+  nome      String?
+  userId    String
+  user      User @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
+}
 
-  @@index([userId], map: "Seguradora_userId_fkey")
+
+
+model Checklist {
+    id           Int      @id @default(autoincrement())
+  descricao      String
+  arquivoUrl     String
+  obrigatorio    Boolean
+  entregue       Boolean 
+  userId         String  // Agora o userId está correto
+  user           User     @relation(fields: [userId], references: [id])
+  processoId     Int @unique
+  processo       Processo     @relation(fields: [processoId], references: [id])
+ 
+}
+
+model Andamento { 
+  id                 Int            @id @default(autoincrement())
+  data               DateTime?       @default(now())
+  observacoes        String?
+  faseProcessoId     Int
+  faseProcesso       FaseProcesso   @relation(fields: [faseProcessoId], references: [id])
+  userId             String
+  user               User           @relation(fields: [userId], references: [id])
+  processoId         Int  @unique
+  processo           Processo       @relation(fields: [processoId], references: [id])
 }
 
 model TipoDeVeiculo {
-  id     Int     @id @default(autoincrement())
-  placa  String
-  marca  String
-  modelo String
-  rcf    Boolean
-  userId String
-  user   User    @relation(fields: [userId], references: [id])
+  id        Int @id @default(autoincrement())
+  nome      String? 
+  placa     String?  @unique
+  marca     String?
+  modelo    String?
+  userId    String
+  user      User @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
 
-  @@index([userId], map: "TipoDeVeiculo_userId_fkey")
+ sinistro   Sinistro[]
+
+}
+model Sinistro {
+  id              Int             @id @default(autoincrement())
+  numero          String?         @unique
+  dataSinistro    DateTime?       @default(now())
+  dataAbertura    DateTime?       @default(now())
+  userId          String
+  user            User @relation(fields: [userId], references: [id])
+  processoId      Int             @unique
+  processo        Processo       @relation(fields: [processoId], references: [id])
+  
+  tipoDeVeiculoId Int?            
+  tipoDeVeiculo   TipoDeVeiculo?  @relation(fields: [tipoDeVeiculoId], references: [id])
+
+  delegaciaId Int?                
+  delegacia   Delegacia?          @relation(fields: [delegaciaId], references: [id])
+}
+
+model Delegacia {
+  id              Int @id @default(autoincrement())
+  delegacia       String?
+  uf              String?
+  cidade          String?
+  dataBo          DateTime?       @default(now())
+  numeroBo        String?
+  userId          String
+  user            User @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
+  sinistro  Sinistro[]
 }
 
 model Vitima {
-  id              Int        @id @default(autoincrement())
-  nome            String
-  cpf             Int
-  rg              Int
-  data_nascimento DateTime
-  data_emissao    DateTime
-  orgao_expedidor String
-  profissao       String
-  renda_mensal    Int
-  cep             Int
-  uf              String
-  endereco        String
-  numero          Int
-  sexo            String
-  complemento     String
-  bairro          String
-  cidade          String
-  email           String
-  telefone01      Int
-  telefone02      Int
-  userId          String
-  processos       Processo[]
-  user            User       @relation(fields: [userId], references: [id])
+  id              Int         @id @default(autoincrement()) // ID único da vítima
+  nome            String      // Nome completo da vítima
+  cpf             String      @unique // CPF da vítima (único)
+  rg              String?      // RG da vítima (único)
+  data_nascimento DateTime?    // Data de nascimento da vítima
+  data_emissao    DateTime?    // Data de emissão do RG
+  orgao_expedidor String?      // Órgão expedidor do RG
+  activo          Boolean     // Status da vítima (se está ativa ou não)
+  profissao       String?      // Profissão da vítima
+  renda_mensal    Int?         // Renda mensal da vítima
+  cep             String?         // CEP do endereço da vítima
+  uf              String?      // Estado (UF) da vítima
+  endereco        String?      // Endereço completo
+  numero          String?         // Número da residência
+  sexo            Sexo?      // Sexo da vítima
+  complemento     String?     // Complemento do endereço (opcional)
+  bairro          String?      // Bairro onde a vítima reside
+  cidade          String?      // Cidade onde a vítima reside
+  email           String?     // E-mail da vítima (opcional)
+  telefone01      String?         // Telefone 1 da vítima
+  telefone02      String?        // Telefone 2 da vítima (opcional)
+  userId          String      // ID do usuário que criou a vítima
+  user            User        @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
+  processos       Processo[]  // Relacionamento com processos que a vítima está envolvida
 
-  @@index([userId], map: "Vitima_userId_fkey")
 }
 
 model Processo {
-  id             Int             @id @default(autoincrement())
-  numero         String          @unique
+  id             Int            @id @default(autoincrement())
   tipoProcessoId Int
-  faseProcessoId Int
-  vitimaId       Int
-  userId         String
-  status         String
-  criado_em      DateTime        @default(now())
-  atualizado_em  DateTime        @updatedAt
-  faseProcesso   FaseProcesso    @relation(fields: [faseProcessoId], references: [id])
   tipoProcesso   TiposDeProcesso @relation(fields: [tipoProcessoId], references: [id])
-  user           User            @relation(fields: [userId], references: [id])
-  vitima         Vitima          @relation(fields: [vitimaId], references: [id])
+  faseProcessoId Int
+  faseProcesso   FaseProcesso   @relation(fields: [faseProcessoId], references: [id])
+  vitimaId       Int
+  vitima         Vitima         @relation(fields: [vitimaId], references: [id])
+  userId         String
+  user           User           @relation(fields: [userId], references: [id])
+  prioridadeId   Int
+  prioridade     Prioridades    @relation(fields: [prioridadeId], references: [id])
+  criado_em      DateTime       @default(now())
+  atualizado_em  DateTime       @updatedAt
+  andamento      Andamento?
+  sinistro       Sinistro?
+  checklist      Checklist?
+ 
 
-  @@index([faseProcessoId], map: "Processo_faseProcessoId_fkey")
-  @@index([tipoProcessoId], map: "Processo_tipoProcessoId_fkey")
-  @@index([userId], map: "Processo_userId_fkey")
-  @@index([vitimaId], map: "Processo_vitimaId_fkey")
-}
-
-model Cliente {
-  id     Int    @id @default(autoincrement())
-  nome   String
-  cpf    Int
-  rg     Int
-  userId String
-  User   User   @relation(fields: [userId], references: [id])
-
-  @@index([userId], map: "Cliente_userId_fkey")
-}
-
-model Prioridade {
-  id        Int    @id @default(autoincrement())
-  nome      String
-  cor_fundo String
-  cor_fonte String
-  userId    String
-  User      User   @relation(fields: [userId], references: [id])
-
-  @@index([userId], map: "Prioridade_userId_fkey")
+  @@index([faseProcessoId])
+  @@index([tipoProcessoId])
 }
