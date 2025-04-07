@@ -37,7 +37,7 @@ export default {
       }
 
       const resetToken = crypto.randomBytes(20).toString("hex");
-      const resetTokenExpiration = new Date(Date.now() + 3600000); // 1 hora de validade
+      const resetTokenExpiration = new Date(Date.now() + 3600000); 
 
       await prisma.user.update({
         where: { email: normalizedEmail },
