@@ -6,6 +6,7 @@ CREATE TABLE `User` (
     `password` VARCHAR(191) NOT NULL,
     `resetPasswordToken` VARCHAR(255) NULL,
     `resetPasswordExpires` DATETIME(3) NULL,
+    `profileImage` VARCHAR(255) NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -55,17 +56,6 @@ CREATE TABLE `Prioridades` (
     `cor_fundo` VARCHAR(191) NOT NULL,
     `cor_fonte` VARCHAR(191) NOT NULL,
     `activo` BOOLEAN NOT NULL,
-    `userId` VARCHAR(191) NOT NULL,
-
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `Parceiro` (
-    `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `nome` VARCHAR(191) NULL,
-    `uf` VARCHAR(191) NULL,
-    `cidade` VARCHAR(191) NULL,
     `userId` VARCHAR(191) NOT NULL,
 
     PRIMARY KEY (`id`)
@@ -122,10 +112,10 @@ CREATE TABLE `Andamento` (
 -- CreateTable
 CREATE TABLE `TipoDeVeiculo` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `nome` VARCHAR(191) NULL,
     `placa` VARCHAR(191) NULL,
     `marca` VARCHAR(191) NULL,
     `modelo` VARCHAR(191) NULL,
+    `ano` INTEGER NULL,
     `userId` VARCHAR(191) NOT NULL,
 
     UNIQUE INDEX `TipoDeVeiculo_placa_key`(`placa`),
@@ -198,6 +188,8 @@ CREATE TABLE `Processo` (
     `vitimaId` INTEGER NOT NULL,
     `userId` VARCHAR(191) NOT NULL,
     `prioridadeId` INTEGER NOT NULL,
+    `seguradoraId` INTEGER NULL,
+    `bancoId` INTEGER NULL,
     `criado_em` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `atualizado_em` DATETIME(3) NOT NULL,
 
@@ -217,9 +209,6 @@ ALTER TABLE `FaseProcesso` ADD CONSTRAINT `FaseProcesso_userId_fkey` FOREIGN KEY
 
 -- AddForeignKey
 ALTER TABLE `Prioridades` ADD CONSTRAINT `Prioridades_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `Parceiro` ADD CONSTRAINT `Parceiro_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Banco` ADD CONSTRAINT `Banco_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -277,3 +266,9 @@ ALTER TABLE `Processo` ADD CONSTRAINT `Processo_userId_fkey` FOREIGN KEY (`userI
 
 -- AddForeignKey
 ALTER TABLE `Processo` ADD CONSTRAINT `Processo_prioridadeId_fkey` FOREIGN KEY (`prioridadeId`) REFERENCES `Prioridades`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Processo` ADD CONSTRAINT `Processo_seguradoraId_fkey` FOREIGN KEY (`seguradoraId`) REFERENCES `Seguradora`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Processo` ADD CONSTRAINT `Processo_bancoId_fkey` FOREIGN KEY (`bancoId`) REFERENCES `Banco`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
