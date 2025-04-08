@@ -25,7 +25,7 @@ model User {
   fasesProcesso       FaseProcesso[] 
   tiposDeProcesso     TiposDeProcesso[] 
   prioridades         Prioridades[] 
-  parceiro            Parceiro[] 
+  
   banco               Banco[] 
   seguradora          Seguradora[] 
   tipoDeVeiculo       TipoDeVeiculo[] 
@@ -83,14 +83,6 @@ model Prioridades {
   processo  Processo[]
 }
 
-model Parceiro {
-  id        Int @id @default(autoincrement())
-  nome      String?
-  uf        String?
-  cidade    String?
-  userId    String
-  user      User @relation(fields: [userId], references: [id]) // Relacionamento com o usuário
-}
 
 model Banco {
   id        Int @id @default(autoincrement())
