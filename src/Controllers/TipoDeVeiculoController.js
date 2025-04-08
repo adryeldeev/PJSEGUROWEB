@@ -28,7 +28,7 @@ export default {
 
             // Caso contrário, cria um novo registro
             tipoDeVeiculo = await prisma.tipoDeVeiculo.create({
-                data: { nome, placa, marca, modelo, userId }
+                data: { placa, marca, modelo,ano, userId }
             });
 
             return res.status(201).json({
