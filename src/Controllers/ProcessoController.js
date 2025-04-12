@@ -318,18 +318,18 @@ export default {
     // Excluir um processo
     async deleteProcesso(req, res) {
         try {
-            const { id } = req.params;
-
-            await prisma.processo.delete({
-                where: { id: parseInt(id) },
-            });
-
-            return res.status(200).json({ message: "Processo excluído com sucesso." });
-
+          const { id } = req.params;
+          const processoId = parseInt(id);
+      
+          await prisma.processo.delete({
+            where: { id: processoId },
+          });
+      
+          return res.status(200).json({ message: "Processo excluído com sucesso." });
         } catch (error) {
-            console.error(error);
-            return res.status(500).json({ message: "Erro ao excluir o processo.", error });
+          console.error("Erro ao excluir processo:", error);
+          return res.status(500).json({ message: "Erro ao excluir o processo.", error });
         }
-    },
+      }
 };
 
