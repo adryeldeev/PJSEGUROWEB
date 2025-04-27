@@ -34,10 +34,7 @@ export default {
                 return res.status(400).json({ message: "Os campos obrigatorio e entregue devem ser booleanos." });
             }
 
-            // Verificando se o arquivo foi enviado
-            if (!req.file) {
-                return res.status(400).json({ error: "Nenhum arquivo enviado." });
-            }
+           
 
             let arquivoUrl = null;
             if (req.file) {
@@ -89,7 +86,7 @@ export default {
     async findByID(req, res) {
         try {
             const { id: processoId } = req.params // Captura o ID do processo da URL
-            console.log("processoId no backend:", processoId);
+            
             // Verifica se processoId foi passado
             if (!processoId) {
                 return res.status(400).json({ error: "O ID do processo é obrigatório." });
