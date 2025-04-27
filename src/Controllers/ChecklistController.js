@@ -53,7 +53,6 @@ export default {
                   descricao: descricao,
                   obrigatorio: obrigatorioBoolean,
                   entregue: entregueBoolean,
-                  processoId: Number(processoId),
                   arquivoUrl: arquivoUrl || null,
                   userId: userId,
                   user: {
