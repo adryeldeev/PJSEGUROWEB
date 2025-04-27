@@ -54,7 +54,6 @@ export default {
                   obrigatorio: obrigatorioBoolean,
                   entregue: entregueBoolean,
                   arquivoUrl: arquivoUrl || null,
-                  userId: userId,
                   user: {
                     connect: { id: userId }, // Conecte o checklist ao usuário existente
                   },
