@@ -86,13 +86,12 @@ CREATE TABLE `Seguradora` (
 CREATE TABLE `Checklist` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `descricao` VARCHAR(191) NOT NULL,
-    `arquivoUrl` VARCHAR(191) NOT NULL,
-    `obrigatorio` BOOLEAN NOT NULL,
-    `entregue` BOOLEAN NOT NULL,
+    `arquivoUrl` VARCHAR(191) NULL,
+    `obrigatorio` BOOLEAN NULL,
+    `entregue` BOOLEAN NULL,
     `userId` VARCHAR(191) NOT NULL,
     `processoId` INTEGER NOT NULL,
 
-    UNIQUE INDEX `Checklist_processoId_key`(`processoId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -105,7 +104,6 @@ CREATE TABLE `Andamento` (
     `userId` VARCHAR(191) NOT NULL,
     `processoId` INTEGER NOT NULL,
 
-    UNIQUE INDEX `Andamento_processoId_key`(`processoId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -220,7 +218,7 @@ ALTER TABLE `Seguradora` ADD CONSTRAINT `Seguradora_userId_fkey` FOREIGN KEY (`u
 ALTER TABLE `Checklist` ADD CONSTRAINT `Checklist_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Checklist` ADD CONSTRAINT `Checklist_processoId_fkey` FOREIGN KEY (`processoId`) REFERENCES `Processo`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Checklist` ADD CONSTRAINT `Checklist_processoId_fkey` FOREIGN KEY (`processoId`) REFERENCES `Processo`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Andamento` ADD CONSTRAINT `Andamento_faseProcessoId_fkey` FOREIGN KEY (`faseProcessoId`) REFERENCES `FaseProcesso`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -229,7 +227,7 @@ ALTER TABLE `Andamento` ADD CONSTRAINT `Andamento_faseProcessoId_fkey` FOREIGN K
 ALTER TABLE `Andamento` ADD CONSTRAINT `Andamento_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Andamento` ADD CONSTRAINT `Andamento_processoId_fkey` FOREIGN KEY (`processoId`) REFERENCES `Processo`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Andamento` ADD CONSTRAINT `Andamento_processoId_fkey` FOREIGN KEY (`processoId`) REFERENCES `Processo`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `TipoDeVeiculo` ADD CONSTRAINT `TipoDeVeiculo_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -238,7 +236,7 @@ ALTER TABLE `TipoDeVeiculo` ADD CONSTRAINT `TipoDeVeiculo_userId_fkey` FOREIGN K
 ALTER TABLE `Sinistro` ADD CONSTRAINT `Sinistro_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Sinistro` ADD CONSTRAINT `Sinistro_processoId_fkey` FOREIGN KEY (`processoId`) REFERENCES `Processo`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Sinistro` ADD CONSTRAINT `Sinistro_processoId_fkey` FOREIGN KEY (`processoId`) REFERENCES `Processo`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Sinistro` ADD CONSTRAINT `Sinistro_tipoDeVeiculoId_fkey` FOREIGN KEY (`tipoDeVeiculoId`) REFERENCES `TipoDeVeiculo`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
