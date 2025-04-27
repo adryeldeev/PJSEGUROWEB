@@ -50,14 +50,17 @@ export default {
             // Criar o checklist no banco de dados
             const checklist = await prisma.checklist.create({
                 data: {
-                    descricao: descricao,
-                    obrigatorio: obrigatorioBoolean, // Usando o valor booleano
-                    entregue: entregueBoolean, // Usando o valor booleano
-                    processoId: Number(processoId),
-                    arquivoUrl: arquivoUrl || null,
-                    userId: userId,
+                  descricao: descricao,
+                  obrigatorio: obrigatorioBoolean,
+                  entregue: entregueBoolean,
+                  processoId: Number(processoId),
+                  arquivoUrl: arquivoUrl || null,
+                  userId: userId, // Certifique-se de que o userId está sendo passado corretamente
+                  user: {
+                    connect: { id: userId }, // Conecte o checklist ao usuário existente
+                  },
                 },
-            });
+              });
 
             res.status(201).json(checklist); // Retornar apenas o checklist
         } catch (error) {

@@ -20,6 +20,7 @@ const messages = {
 
 export default {
   async createUser(req, res) {
+ 
     const { username, email, password, confirmPassword } = req.body;
 
     if (!username || !email || !password) {
