@@ -106,9 +106,9 @@ model Seguradora {
 model Checklist {
   id          Int      @id @default(autoincrement())
   descricao   String
-  arquivoUrl  String
-  obrigatorio Boolean
-  entregue    Boolean
+  arquivoUrl  String?
+  obrigatorio Boolean?
+  entregue    Boolean?
   userId      String // Agora o userId está correto
   user        User     @relation(fields: [userId], references: [id])
   processoId  Int      @unique
