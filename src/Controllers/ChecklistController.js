@@ -55,9 +55,12 @@ export default {
                   entregue: entregueBoolean,
                   processoId: Number(processoId),
                   arquivoUrl: arquivoUrl || null,
-                  userId: userId, // Certifique-se de que o userId está sendo passado corretamente
+                  userId: userId,
                   user: {
                     connect: { id: userId }, // Conecte o checklist ao usuário existente
+                  },
+                  processo: {
+                    connect: { id: Number(processoId) }, // Conecte o checklist ao processo existente
                   },
                 },
               });
