@@ -26,7 +26,7 @@ app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 app.use(router);
 
-cd
+
 const port = process.env.PORT || 8000;
 
 app.listen(port, () => {
