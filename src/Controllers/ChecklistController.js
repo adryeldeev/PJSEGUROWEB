@@ -60,6 +60,7 @@ export default {
     },
   },
 });
+console.log("Checklist criado:", checklist);
 
             res.status(201).json(checklist); // Retornar apenas o checklist
         } catch (error) {
