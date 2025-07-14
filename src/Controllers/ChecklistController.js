@@ -21,6 +21,7 @@ export default {
             const { descricao, obrigatorio, entregue, processoId } = req.body;
             console.log("Dados recebidos:", { descricao, obrigatorio, entregue, processoId });
             const userId = req.userId; // Identificação do usuário logado
+            console.log("ID do usuário:", userId); // ✅ use diretamente o campo userId
             // Validação
             if (!descricao || !processoId) {
                 return res.status(400).json({ message: "Descrição e processoId são obrigatórios." });
