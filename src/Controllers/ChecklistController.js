@@ -54,7 +54,7 @@ export default {
     obrigatorio: obrigatorioBoolean,
     entregue: entregueBoolean,
     arquivoUrl: arquivoUrl || null,
-    userId: userId, // ✅ use diretamente o campo userId
+    userId, // ✅ use diretamente o campo userId
     processo: {
       connect: { id: Number(processoId) },
     },
