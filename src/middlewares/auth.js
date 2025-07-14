@@ -9,6 +9,7 @@ export const authenticate = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+     console.log("TOKEN DECODIFICADO:", decoded); 
     req.userId = decoded.userId; // Adiciona o ID do usuário à requisição
     next(); // Prossegue para a próxima função
   } catch (error) {
