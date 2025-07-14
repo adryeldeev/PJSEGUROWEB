@@ -47,7 +47,8 @@ export default {
             if (!processo) {
                 return res.status(404).json({ message: "ID do processo não encontrado." });
             }
-
+            const camposChecklist = await prisma.checklist.findFirst();
+            console.log("Checklist fields (findFirst):", camposChecklist);
             // Criar o checklist no banco de dados
           const checklist = await prisma.checklist.create({
   data: {
