@@ -16,60 +16,67 @@ const stringToBoolean = (value) => {
 
 export default {
     // Criar Checklist
-    async createChecklist(req, res) {
-        try {
-            const { descricao, obrigatorio, entregue, processoId } = req.body;
-            console.log("Dados recebidos:", { descricao, obrigatorio, entregue, processoId });
-            const userId = req.userId; // Identificação do usuário logado
-            console.log("ID do usuário:", userId); // ✅ use diretamente o campo userId
-            // Validação
-            if (!descricao || !processoId) {
-                return res.status(400).json({ message: "Descrição e processoId são obrigatórios." });
-            }
+   async createChecklist(req, res) {
+    try {
+        const { descricao, obrigatorio, entregue, processoId } = req.body;
+        console.log("Dados recebidos:", { descricao, obrigatorio, entregue, processoId });
+        const userId = req.userId; // Identificação do usuário logado
+        console.log("ID do usuário:", userId);
 
-            const obrigatorioBoolean = stringToBoolean(obrigatorio);
-            const entregueBoolean = stringToBoolean(entregue);
-
-            // Verificando se os campos obrigatorio e entregue foram passados corretamente
-            if (typeof obrigatorioBoolean !== 'boolean' || typeof entregueBoolean !== 'boolean') {
-                return res.status(400).json({ message: "Os campos obrigatorio e entregue devem ser booleanos." });
-            }
-
-           
-
-            let arquivoUrl = null;
-            if (req.file) {
-                // URL do arquivo
-                arquivoUrl = `/uploads/checklist/${req.file.filename}`;
-            }
-            // Verificar se o processo existe
-            const processo = await prisma.processo.findUnique({ where: { id: parseInt(processoId, 10) } });
-            if (!processo) {
-                return res.status(404).json({ message: "ID do processo não encontrado." });
-            }
-            const camposChecklist = await prisma.checklist.findFirst();
-            console.log("Checklist fields (findFirst):", camposChecklist);
-            // Criar o checklist no banco de dados
-          const checklist = await prisma.checklist.create({
-  data: {
-    descricao: descricao,
-        obrigatorio: obrigatorioBoolean,
-    entregue: entregueBoolean,
-    arquivoUrl: arquivoUrl || null,
-    userId, // ✅ use diretamente o campo userId
-    processo: {
-      connect: { id: Number(processoId) },
-    },
-  },
-});
-console.log("Checklist criado:", checklist);
-
-            res.status(201).json(checklist); // Retornar apenas o checklist
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ error: "Erro ao enviar checklist.", detalhes: error.message });
+        // Validação
+        if (!descricao || !processoId) {
+            return res.status(400).json({ message: "Descrição e processoId são obrigatórios." });
         }
-    },
+
+        const obrigatorioBoolean = stringToBoolean(obrigatorio);
+        const entregueBoolean = stringToBoolean(entregue);
+
+        // Verificando se os campos obrigatorio e entregue foram passados corretamente
+        if (typeof obrigatorioBoolean !== 'boolean' || typeof entregueBoolean !== 'boolean') {
+            return res.status(400).json({ message: "Os campos obrigatorio e entregue devem ser booleanos." });
+        }
+
+        let arquivoUrl = null;
+        if (req.file) {
+            // URL do arquivo
+            arquivoUrl = `/uploads/checklist/${req.file.filename}`;
+        }
+
+        // Verificar se o processo existe
+        const processo = await prisma.processo.findUnique({ where: { id: parseInt(processoId, 10) } });
+        if (!processo) {
+            return res.status(404).json({ message: "ID do processo não encontrado." });
+        }
+
+        const camposChecklist = await prisma.checklist.findFirst();
+        console.log("Checklist fields (findFirst):", camposChecklist);
+
+        // Criar o checklist no banco de dados
+        const checklist = await prisma.checklist.create({
+            data: {
+                descricao: descricao,
+                obrigatorio: obrigatorioBoolean,
+                entregue: entregueBoolean,
+                arquivoUrl: arquivoUrl || null,
+                // ALTERAÇÃO AQUI: Conectando o usuário explicitamente
+                user: {
+                    connect: {
+                        id: userId, // Conecta pelo ID do usuário
+                    },
+                },
+                processo: {
+                    connect: { id: Number(processoId) },
+                },
+            },
+        });
+        console.log("Checklist criado:", checklist);
+
+        res.status(201).json(checklist); // Retornar apenas o checklist
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Erro ao enviar checklist.", detalhes: error.message });
+    }
+},
 
     // Buscar todos os checklists
     async findAll(req, res) {
